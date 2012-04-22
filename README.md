@@ -1,6 +1,10 @@
+# Overview
 
-# Usage
+This project is at its infancy. It doesn't work yet.
 
+# Proposed Usage
+
+```javascript
 	// create world (world === P)
 	var world = pQuery(function(P){
 
@@ -116,5 +120,5 @@
 		world.step(precision, time);
 
 	});
-
+```
 
