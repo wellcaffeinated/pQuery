@@ -37,7 +37,10 @@
   	});
   	require(['pquery'], function(pQuery){
 
+  		window.P = pQuery(function(P){
 
+  			console.log(P('<sphere>'));
+  		});
   		window.pQuery = pQuery;
   	});
   </script>
