@@ -70,6 +70,7 @@ define(
 
 				// Handle $(World)
 				if ( World.isWorld( selector ) ) {
+
 					this.context = this[0] = selector;
 					this.length = 1;
 					return this;
@@ -102,16 +103,23 @@ define(
 
 								selector = [ pQuery.createPhyget( ret[1] ) ];
 
-								// add to world if world is context
-								if ( doc )
-									doc.add( selector[0] );
-								
 							} else {
-								// TODO
-								ret = pQuery.buildFragment( [ match[1] ], [ doc ] );
+								
+								ret = pQuery.buildFragment( [ match[1] ] );
+								selector = ( ret.cacheable ? pQuery.clone(ret.fragment) : ret.fragment );
 
-								// TODO
-								selector = ( ret.cacheable ? pQuery.clone(ret.fragment) : ret.fragment ).childNodes;
+							}
+
+							if ( doc ){
+								
+								// add to world if world is context
+								pQuery.each( selector, function(){
+
+									doc.add( this );
+
+								});
+
+								this.context = context;
 							}
 
 							return pQuery.merge( this, selector );
@@ -168,16 +176,59 @@ define(
 				var w;
 				worlds.push( w = new World() );
 				return pQuery.extend(function( s, c ){
+
 						return pQuery( s, c || w );
 					},
 					pQuery( w )
 				);
 			}
 
-			,createPhyget: function( type ){
+			,createPhyget: function( type, recursive ){
 
-				//TODO
-				return new Phyget();
+				// TODO - more sophisticated creation
+				var ret = new Phyget()
+					,name
+					,val
+					;
+
+				// handle creation from xml element
+				if ( type.nodeType ){
+
+					// read attributes
+					if ( type.attributes ){
+
+						for (var i = 0, l = type.attributes.length; i < l; ++i){
+
+							name = type.attributes[i].nodeName;
+							val = type.attributes[i].nodeValue;
+
+							if ( name === 'class' ){
+
+								ret.addClass( val );
+
+							} else if ( ret[name] ){
+
+								//set attribute
+								ret[name]( val );
+							}
+
+						};
+					}
+
+
+					if ( recursive ){
+
+						for (var i = 0, l = type.childNodes.length; i < l; ++i){
+
+							temp = pQuery.createPhyget( type.childNodes[i], recursive );
+
+							ret.add( temp );
+						};
+					}
+
+				}
+				
+				return ret;
 			}
 
 		});
@@ -195,12 +246,31 @@ define(
 			var i, j, currentExpression, currentBit;
 			for (i = 0; (currentExpression = expressions[i]); i++){
 				for (j = 0; (currentBit = currentExpression[j]); j++){
-
+					// TODO
 				}
 			}
 
 			return matches;
-		}
+		};
+
+		pQuery.buildFragment = function( frags ) {
+			
+			var ret = []
+				,node
+				;
+
+			for (var i = 0, l = frags.length; i < l; ++i ){
+				
+				node = pQuery.parseXML( '<r>'+frags[i]+'</r>' );
+
+				for (var j = 0, m = node.firstChild.childNodes.length; i < m; ++i ){
+
+					ret.push( pQuery.createPhyget( node.firstChild.childNodes[i], true ) );
+				};
+			};
+
+			return { cacheable: false, fragment: ret };
+		};
 
 
 		return pQuery;

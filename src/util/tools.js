@@ -1,5 +1,39 @@
 define(function(){
 
+		/**
+		 * Shim for `indexOf` 
+		 */
+		Array.prototype.indexOf = Array.prototype.indexOf || function ( searchElement, fromIndex ) {
+		    "use strict";
+		    if (this == null) {
+		        throw new TypeError();
+		    }
+		    var t = Object(this);
+		    var len = t.length >>> 0;
+		    if (len === 0) {
+		        return -1;
+		    }
+		    var n = 0;
+		    if (arguments.length > 0) {
+		        n = Number(arguments[1]);
+		        if (n != n) { // shortcut for verifying if it's NaN
+		            n = 0;
+		        } else if (n != 0 && n != Infinity && n != -Infinity) {
+		            n = (n > 0 || -1) * Math.floor(Math.abs(n));
+		        }
+		    }
+		    if (n >= len) {
+		        return -1;
+		    }
+		    var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+		    for (; k < len; k++) {
+		        if (k in t && t[k] === searchElement) {
+		            return k;
+		        }
+		    }
+		    return -1;
+		};
+
 			// [[Class]] -> type pairs
 		var	class2type = {}
 			// Save a reference to some core methods
@@ -216,6 +250,64 @@ define(function(){
 					first.length = i;
 
 					return first;
+				}
+
+				// Cross-browser xml parsing
+				,parseXML: function( data ) {
+					if ( typeof data !== "string" || !data ) {
+						return null;
+					}
+					var xml, tmp;
+					try {
+						if ( window.DOMParser ) { // Standard
+							tmp = new DOMParser();
+							xml = tmp.parseFromString( data , "text/xml" );
+						} else { // IE
+							xml = new ActiveXObject( "Microsoft.XMLDOM" );
+							xml.async = "false";
+							xml.loadXML( data );
+						}
+					} catch( e ) {
+						xml = undefined;
+					}
+					if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
+						Tools.error( "Invalid XML: " + data );
+					}
+					return xml;
+				}
+
+				,now: function() {
+					return ( new Date() ).getTime();
+				}
+
+				// A global GUID counter for objects
+				,guid: 1
+
+				// Bind a function to a context, optionally partially applying any
+				// arguments.
+				,proxy: function( fn, context ) {
+					if ( typeof context === "string" ) {
+						var tmp = fn[ context ];
+						context = fn;
+						fn = tmp;
+					}
+
+					// Quick check to determine if target is callable, in the spec
+					// this throws a TypeError, but we will just return undefined.
+					if ( !Tools.isFunction( fn ) ) {
+						return undefined;
+					}
+
+					// Simulated bind
+					var args = slice.call( arguments, 2 ),
+						proxy = function() {
+							return fn.apply( context, args.concat( slice.call( arguments ) ) );
+						};
+
+					// Set the guid of unique handler to the same of original handler, so it can be removed
+					proxy.guid = fn.guid = fn.guid || proxy.guid || Tools.guid++;
+
+					return proxy;
 				}
 
 			}

@@ -8,7 +8,7 @@ define(
 
         function Class( obj ){
 
-            var constructor = obj.__constructor__ || function(){};
+            var constructor = obj.__constructor__ || Tools.noop;
 
             if(obj.__extends__){
 
