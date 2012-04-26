@@ -1,9 +1,11 @@
 define(
 	[
+		//'util/tools',
 		'util/class',
 		'physics/body'
 	],
 	function(
+		//Tools,
 		Class,
 		Body
 	){
@@ -11,9 +13,12 @@ define(
 		var World = Class({
 
 			type: 'World'
+			
 			,__constructor__: function(){
 
 				this.__extends__.call( this );
+
+				this._phygets = [];
 			}
 
 			,__extends__: Body
@@ -23,6 +28,22 @@ define(
 
 				return false;
 			}
+
+			/*,refreshChildren: function(){
+
+				return this.buildPhygetTree();
+			}
+
+			,buildPhygetTree: function( root ){
+
+				if ( !root ){
+
+					this._phygets = []
+				}
+
+				Tools.each( this._children, buildPhygetTree );
+
+			}*/
 		});
 
 		World.isWorld = function( w ){

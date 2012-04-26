@@ -11,6 +11,7 @@ define(
 		var Phyget = Class({
 			
 			type: 'Phyget'
+			
 			,__constructor__: function(){
 
 				this.__extends__.call( this );
