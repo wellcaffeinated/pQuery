@@ -23,15 +23,14 @@ define(
 					,w
 					;
 
-				// Handle $(""), $(null), or $(undefined)
-				if ( !selector ) {
+				if ( selector === true ) {
 					return pQuery.createWorld();
 				}
 				
 				// HANDLE: $(function)
 				// Shortcut for context specific
 				if ( !World.isWorld( selector ) && pQuery.isFunction( selector ) ) {
-					ret = pQuery(false);
+					ret = pQuery( true );
 					selector( ret );
 					return ret;
 				}
@@ -56,6 +55,11 @@ define(
 			,rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>)?$/
 
 			,worlds = []
+
+			,rootpQuery
+
+			// to hold methods for world Api
+			,worldMethods
 			;
 
 		pQuery.fn = pQuery.prototype = {
@@ -67,6 +71,11 @@ define(
 					,ret
 					,doc
 					;
+
+				// Handle $(""), $(null), or $(undefined)
+				if ( !selector ) {
+					return this;
+				}
 
 				// Handle $(World)
 				if ( World.isWorld( selector ) ) {
@@ -105,9 +114,9 @@ define(
 
 							} else {
 								
-								ret = pQuery.buildFragment( [ match[1] ] );
-								selector = ( ret.cacheable ? pQuery.clone(ret.fragment) : ret.fragment );
-
+								// disable rich fragment creation
+								pQuery.error('Only simple <tag> creation is supported');
+								
 							}
 
 							if ( doc ){
@@ -127,8 +136,8 @@ define(
 						} 
 
 					// HANDLE: $(expr, $(...))
-					} else if ( !context || context.pQuery ) {
-						return ( context || pQuery ).find( selector );
+					} else if ( !context || context.pquery ) {
+						return ( context || rootpQuery ).find( selector );
 
 					// HANDLE: $(expr, context)
 					// (which is just equivalent to: $(context).find(expr)
@@ -150,7 +159,7 @@ define(
 
 
 			// The current version of pQuery being used
-			,pQuery: '0.1a'
+			,pquery: '0.1a'
 
 			// The default length of a pQuery object is 0
 			,length: 0
@@ -159,6 +168,34 @@ define(
 			// (You can seed the arguments with an array of args)
 			,each: function( callback, args ) {
 				return pQuery.each( this, callback, args );
+			}
+
+			// Take an array of elements and push it onto the stack
+			// (returning the new matched element set)
+			,pushStack: function( elems, name, selector ) {
+				// Build a new pQuery matched element set
+				var ret = this.constructor();
+
+				if ( pQuery.isArray( elems ) ) {
+					push.apply( ret, elems );
+
+				} else {
+					pQuery.merge( ret, elems );
+				}
+
+				// Add the old object onto the stack (as a reference)
+				ret.prevObject = this;
+
+				ret.context = this.context;
+
+				if ( name === "find" ) {
+					ret.selector = this.selector + ( this.selector ? " " : "" ) + selector;
+				} else if ( name ) {
+					ret.selector = this.selector + "." + name + "(" + selector + ")";
+				}
+
+				// Return the newly-formed element set
+				return ret;
 			}
 		};
 
@@ -169,109 +206,134 @@ define(
 
 		pQuery.extend( Tools );
 
+		// world methods
+		worldMethods = {
+
+			step: function( timestep, now ){
+
+				this.context.step( timestep, now );
+				return this;
+			}
+		};
+
 		// asset creation
 		pQuery.extend({
 
 			createWorld: function(){
 				var w;
 				worlds.push( w = new World() );
+
+				// reset rootpquery
+				rootpQuery = pQuery( worlds );
+
 				return pQuery.extend(function( s, c ){
 
 						return pQuery( s, c || w );
 					},
+					worldMethods,
 					pQuery( w )
 				);
 			}
 
-			,createPhyget: function( type, recursive ){
+			,createPhyget: function( type ){
 
 				// TODO - more sophisticated creation
 				var ret = new Phyget()
-					,name
-					,val
 					;
-
-				// handle creation from xml element
-				if ( type.nodeType ){
-
-					// read attributes
-					if ( type.attributes ){
-
-						for (var i = 0, l = type.attributes.length; i < l; ++i){
-
-							name = type.attributes[i].nodeName;
-							val = type.attributes[i].nodeValue;
-
-							if ( name === 'class' ){
-
-								ret.addClass( val );
-
-							} else if ( ret[name] ){
-
-								//set attribute
-								ret[name]( val );
-							}
-
-						};
-					}
-
-
-					if ( recursive ){
-
-						for (var i = 0, l = type.childNodes.length; i < l; ++i){
-
-							temp = pQuery.createPhyget( type.childNodes[i], recursive );
-
-							ret.add( temp );
-						};
-					}
-
-				}
 				
 				return ret;
 			}
 
 		});
 
-
 		// Finder
 		pQuery.find = function( selector, context, results ){
 
 			var matches = []
 				,selectorObj = Slick.parse( selector )
+				,expressions = selectorObj.expressions
 				;
 
-			context = context || worlds;
+			//context = context || worlds;
 
 			var i, j, currentExpression, currentBit;
 			for (i = 0; (currentExpression = expressions[i]); i++){
 				for (j = 0; (currentBit = currentExpression[j]); j++){
-					// TODO
+					//TODO
+					console.log(context, currentBit, currentExpression);
 				}
 			}
 
 			return matches;
 		};
 
-		pQuery.buildFragment = function( frags ) {
-			
-			var ret = []
-				,node
-				;
+		pQuery.contains = function( haystack, needle ){
 
-			for (var i = 0, l = frags.length; i < l; ++i ){
-				
-				node = pQuery.parseXML( '<r>'+frags[i]+'</r>' );
-
-				for (var j = 0, m = node.firstChild.childNodes.length; i < m; ++i ){
-
-					ret.push( pQuery.createPhyget( node.firstChild.childNodes[i], true ) );
-				};
-			};
-
-			return { cacheable: false, fragment: ret };
+			return haystack.contains( needle );
 		};
 
+		// physics methods
+		pQuery.fn.extend({
+
+			find: function( selector ){
+
+				var self = this,
+					i, l;
+
+				if ( typeof selector !== "string" ) {
+					return pQuery( selector ).filter(function() {
+						for ( i = 0, l = self.length; i < l; i++ ) {
+							if ( pQuery.contains( self[ i ], this ) ) {
+								return true;
+							}
+						}
+					});
+				}
+
+				var ret = this.pushStack( "", "find", selector ),
+					length, n, r;
+
+				for ( i = 0, l = this.length; i < l; i++ ) {
+					length = ret.length;
+					pQuery.find( selector, this[i], ret );
+
+					if ( i > 0 ) {
+						// Make sure that the results are unique
+						for ( n = length; n < ret.length; n++ ) {
+							for ( r = 0; r < length; r++ ) {
+								if ( ret[r] === ret[n] ) {
+									ret.splice(n--, 1);
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				return ret;
+
+			}
+
+			,interact: function(){
+
+			}
+
+			,dimensions: function(){
+
+				var dims = arguments[0]
+					,type = pQuery.type(dims)
+					;
+
+				if ( type === 'object' ){
+
+					return this.width( dims.width ).height( dims.height ).depth( dims.depth );
+				}
+
+				//TODO
+			}
+		});
+
+		rootpQuery = pQuery( worlds );
 
 		return pQuery;
 	}

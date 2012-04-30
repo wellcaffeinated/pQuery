@@ -29,14 +29,6 @@
   <!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.7.2.min.js"><\/script>')</script>-->
 
-  <script type="text/world" id="testWorld">
-  	<sphere>
-  		<circle id="circ"></circle>
-  		<square class="one two"></square>
-  	</sphere>
-  	<sphere id="another">
-  	</sphere>
-  </script>
   <!-- scripts concatenated and minified via build script -->
   <script src="require.js"></script>
   <script>
@@ -45,10 +37,18 @@
   	});
   	require(['pquery'], function(pQuery){
 
+      pQuery(true);//create other new world
+
   		window.P = pQuery(function(P){
 
-  			var a = P(document.getElementById('testWorld').innerHTML);
-  			console.log(a);
+  			var a = P('<sphere>');
+  			
+        var b = pQuery('<sphere>');
+
+        console.log(a, b);
+        console.log(P('sphere.theClass'));
+        console.log(pQuery('sphere.theClass'));
+
   		});
   		window.pQuery = pQuery;
   	});
