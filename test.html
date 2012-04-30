@@ -37,19 +37,47 @@
   	});
   	require(['pquery'], function(pQuery){
 
-      pQuery(true);//create other new world
+      pQuery(function(P){//create other new world
+
+        P('<other>');
+
+      });
+
+
 
   		window.P = pQuery(function(P){
 
   			var a = P('<sphere>');
-  			
         var b = pQuery('<sphere>');
 
-        console.log(a, b);
-        console.log(P('sphere.theClass'));
-        console.log(pQuery('sphere.theClass'));
+        console.log(a,b);
+
+        console.log('should find 1', P('sphere').length);
+        console.log('should find 1', pQuery('sphere').length);
+
+        console.log('should not find', P('other').length);
+        console.log('should find 1', pQuery('other').length);
+
+        a[0].add(b[0]);
+
+        console.log('should find 2', P('sphere').length);
+        console.log('should find 2', pQuery('sphere').length);
+
+        console.log('should not find', P('other').length);
+        console.log('should find 1', pQuery('other').length);
+
+        console.log('should find 1', P('sphere sphere').length);
+        console.log('should find 1', P('sphere *').length);
+        console.log('should find 2', P('* sphere').length);
+
+        console.log('should find 3', pQuery('*').length);
+
+        console.log('should find 1', P('> *').length);
+
 
   		});
+
+
   		window.pQuery = pQuery;
   	});
   </script>

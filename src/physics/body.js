@@ -1,17 +1,19 @@
 define(
 	[
-		'util/class'
+		'util/class',
+		'util/tools'
 	],
 	function(
-		Class
-		,undefined
+		Class,
+		Tools,
+		undefined
 	){
 
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
 			,lastId = 0
 			,Body = Class({
 
-				type: 'Body'
+				_type: 'body'
 
 				,__constructor__: function( id ){
 
@@ -24,6 +26,12 @@ define(
 				,requestUniqueId: function(){
 
 					return idSeed + (lastId++);
+				}
+
+				// get type
+				,type: function(){
+
+					return this._type;
 				}
 
 				// get or set id
@@ -50,7 +58,7 @@ define(
 				,addClass: function( str ){
 
 					this.removeClass( str );
-				    this._classes = this._classes.concat( str.split(' ') );
+				    this._classes.push.apply( this._classes, str.split(' ') );
 					return this;
 				}
 
@@ -82,14 +90,28 @@ define(
 
 				,hasClass: function( str ){
 
-					return (this._classes.indexOf( str ) >= 0);
+					var args = [].slice.call( arguments )
+						,a
+						,ret = true
+						;
+
+					while( a = args.shift() ){
+
+						ret = ret && (this._classes.indexOf( a ) >= 0);
+					}
+
+					return ret;
 				}
 
 				,add: function( body ) {
 					
-					body.parent( this );
-					this._children[ body.id() ] = body;
-					//this.refreshChildren();
+					// parent setting successful?
+					if ( body.parent( this ) === this ){
+						
+						this._children[ body.id() ] = body;
+						//this.refreshChildren();
+					}
+
 					return this;
 				}
 
@@ -110,7 +132,142 @@ define(
 				// get or set
 				,parent: function( par ){
 
-					return par !== undefined? (this._parent = par) : this._parent;
+					// parents can't be children (stop grandfather paradox :)
+					if ( par && (this._parent !== par) && (this !== par) && (par.parents().indexOf(this) < 0) ){
+
+						if( this._parent ) this._parent.remove( this );
+						this._parent = par;
+						this._parent.add( this );
+					}
+
+					return this._parent;
+				}
+
+				// get list of parents
+				,parents: function(){
+
+					var par = this.parent()
+						,ret
+						;
+					
+					if (!par){
+
+						return [];
+					}
+
+					ret = par.parents();
+					ret.unshift( par );
+					return ret;
+				}
+
+				// child management
+				,children: function( narrow, deep ){
+
+					var ret = []
+						,retVal
+						,c
+						;
+
+					deep = (narrow === true) || !!deep;
+
+					// narrow can be a filter function( el, idx, parent ), simple selector string, or bool
+					if ( !narrow ){
+
+						for ( var id in this._children ){
+							
+							ret.push( c = this._children[id] );
+
+							if ( deep ) ret.push.apply(ret, c.children( narrow, deep ));
+						}
+
+						return ret;
+
+					} else if ( Tools.isFunction( narrow ) ){
+
+						for ( var id in this._children ){
+							
+							retVal = !!narrow( c = this._children[id], id, this );
+
+							if ( retVal ){
+
+								ret.push( c );
+							}
+
+							if ( deep ) ret.push.apply(ret, c.children( narrow, deep ));
+						}
+
+						return ret;
+
+					} else if ( typeof narrow === 'string' ){
+
+						// match: maybe(hash or dot) with word characters
+						retVal = /^(#|\.)?([\w]+)$/.exec( narrow );
+						
+						// invalid selector
+						if ( !retVal ) return [];
+
+						var prop = retVal[1]? ( retVal[1] === '#'? 'id' : 'hasClass' ) : 'type'
+							,val = retVal[2]
+							; 
+						
+						// like highlander... there can only be one
+						if ( prop === 'id' ){
+
+							c = this._children[ val ];
+							
+							if ( c ){
+
+								return [ c ];
+							}
+
+							if ( deep ){
+
+								for ( var id in this._children ){
+
+									if ( c = this._children[id] ){
+
+										return [ c ];
+									}
+								}
+							}
+
+							// no results
+							return ret;
+						}
+
+						for ( var id in this._children ){
+							
+							c = this._children[id];
+
+							retVal = c[ prop ]() === val;
+
+							if ( retVal ){
+
+								ret.push( c );
+							}
+
+							if ( deep ) ret.push.apply(ret, c.children( narrow, deep ));
+						}
+					}
+
+					return ret;
+				}
+
+				,contains: function( child ) {
+					
+					if ( this === child ) return false;
+
+					for ( var i = 0, l = this._children.length; i < l; ++i ){
+						
+						if (
+						   child === this._children[i] ||
+						   this._children[i].contains( child )
+						){
+							return true;
+						}
+					}
+
+					return false;
 				}
 
 				// notify parent tree to refresh children if necessary

@@ -197,6 +197,9 @@ define(
 				// Return the newly-formed element set
 				return ret;
 			}
+
+			// internal use only
+			,push: Array.prototype.push
 		};
 
 		// Give the init function the pQuery prototype for later instantiation
@@ -237,35 +240,138 @@ define(
 
 			,createPhyget: function( type ){
 
-				// TODO - more sophisticated creation
-				var ret = new Phyget()
+				var ret = Phyget.create( type )
 					;
 				
+				if ( !ret ){
+
+					pQuery.error('Invalid phyget type: '+type);
+				}
+
 				return ret;
 			}
 
 		});
 
-		// Finder
-		pQuery.find = function( selector, context, results ){
+		!function(){
 
-			var matches = []
-				,selectorObj = Slick.parse( selector )
-				,expressions = selectorObj.expressions
-				;
+			function makeArray( array, results ) {
+				array = Array.prototype.slice.call( array, 0 );
 
-			//context = context || worlds;
-
-			var i, j, currentExpression, currentBit;
-			for (i = 0; (currentExpression = expressions[i]); i++){
-				for (j = 0; (currentBit = currentExpression[j]); j++){
-					//TODO
-					console.log(context, currentBit, currentExpression);
+				if ( results ) {
+					results.push.apply( results, array );
+					return results;
 				}
-			}
 
-			return matches;
-		};
+				return array;
+			};
+
+			// Finder
+			pQuery.find = function( selector, context, results ){
+
+				results = results || [];
+
+				if ( !selector || typeof selector !== 'string' ){
+					return results;
+				}
+
+				if ( !context ){
+					//search all worlds
+
+					for ( var i = 0, l = worlds.length; i < l; ++i ){
+						
+						pQuery.find( selector, worlds[i], results );
+					}
+
+					return results;
+				}
+
+				var selectorObj = Slick.parse( selector )
+					,expressions = selectorObj.expressions
+					,acceptParents
+					;
+				
+				var i, currentExpression;
+				for (i = 0; (currentExpression = expressions[i]); i++){
+					
+					acceptParents = {};
+
+					function filter(child, id, parent) {
+
+						var body = child
+							,testid = id
+							,check
+							,comb //last combinator
+							,last = currentExpression.length - 1
+							,j = last
+							,currentBit = currentExpression[ j ]
+							;
+
+						do {
+							
+							testid = body.id();
+							
+							// have we already checked and accepted this parent? if so, no need to keep going
+							if ((j === currentExpression.length - 2) && acceptParents[testid]){
+
+								return true;
+							}
+
+							//check id
+							check = (!currentBit.id || currentBit.id === testid);
+
+							//check classes
+							check = check && (!currentBit.classList || body.hasClass.apply(body, currentBit.classList));
+
+							//check type
+							check = check && (!currentBit.tag || currentBit.tag === '*' || body.type() === currentBit.tag);
+
+							// child
+							if ((j === last)){
+								
+								if(!check) return false;
+
+							// parents
+							} else {
+
+								if (comb === '>' && !check){
+
+									return false;
+								}
+
+								if ( !check ){
+									// maybe other parents will match so keep going
+									continue;
+								}
+							}
+
+							comb = currentBit.combinator;
+							j--;
+							currentBit = currentExpression[j];
+
+							if (!currentBit){
+
+								// ok all tests passed
+
+								// add immediate parent as acceptable for this test expression
+								acceptParents[ child.parent().id() ] = true;
+
+								return true;
+							}
+
+						} while ( body = body.parent() );
+
+						// ran out of parents before the test was done
+						return false;
+					}
+
+					makeArray(context.children(filter, true), results);
+				}
+
+				return results;
+			};
+
+		}();
 
 		pQuery.contains = function( haystack, needle ){
 
@@ -316,6 +422,7 @@ define(
 
 			,interact: function(){
 
+				// TODO
 			}
 
 			,dimensions: function(){
@@ -329,7 +436,7 @@ define(
 					return this.width( dims.width ).height( dims.height ).depth( dims.depth );
 				}
 
-				//TODO
+				// TODO
 			}
 		});
 
