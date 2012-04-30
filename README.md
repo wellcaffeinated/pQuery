@@ -56,12 +56,12 @@ This project is at its infancy. It doesn't work yet.
 
 		// if we want, we can set boundaries on our world
 		P.width(100);
-		P.boundaries({
+		P.dimensions({
 			width: 100,
 			height: 100//,
 			//depth: 100 // if no depth is specified, work in 2d
 		});
-		P.boundaries([100, -1]); // any negative value means infinite
+		P.dimensions([100, -1]); // any negative value means infinite
 
 
 		// add physical laws

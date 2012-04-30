@@ -8,19 +8,30 @@ define(
 		Body
 	){
 
-		var Phyget = Class({
-			
-			type: 'Phyget'
-			
-			,__constructor__: function(){
+		//temporary
+		//TODO - remove and make this really work
+		var PhygetRegistry = {};
 
-				this.__extends__.call( this );
-			}
+		function create( type ){
 
-			,__extends__: Body
-		});
+			var Phyget = PhygetRegistry[type] || Class({
+				
+				_type: type
+				
+				,__constructor__: function(){
 
+					this.__extends__.call( this );
+				}
 
-		return Phyget;
+				,__extends__: Body
+			});
+
+			return new (PhygetRegistry[type] = Phyget);
+		}
+		
+
+		return {
+			create: create
+		};
 	}
 );

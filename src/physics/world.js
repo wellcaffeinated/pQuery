@@ -12,7 +12,7 @@ define(
 
 		var World = Class({
 
-			type: 'World'
+			_type: 'world'
 			
 			,__constructor__: function(){
 
