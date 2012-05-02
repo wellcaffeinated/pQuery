@@ -448,9 +448,147 @@ define(
 			}
 		});
 
-		// set up world
+		// set up rootpQuery
 		rootpQuery = pQuery('world');
 
+		// setters
+		pQuery.fn.extend({
+
+			id: function( value ){
+
+				if ( pQuery.isFunction( value ) ) {
+
+					return pQuery.fn.id.call(this, value.call(this, 0, this[0]) );
+				}
+
+				if ( this[0] ){
+
+					return this[0].id( value );
+				}
+
+				return null;
+			}
+
+			,addClass: function( value ){
+
+				if ( pQuery.isFunction( value ) ) {
+
+					return this.each(function( j ) {
+						jQuery( this ).addClass( value.call(this, j, this.classes()) );
+					});
+				}
+
+				if ( value && typeof value === 'string' ) {
+
+					for ( var i = 0, l = this.length; i < l; ++i ){
+						
+						this[ i ].addClass( value );
+					}
+				}
+
+				return this;
+			}
+
+			,removeClass: function( value ){
+
+				if ( pQuery.isFunction( value ) ) {
+
+					return this.each(function( j ) {
+						jQuery( this ).removeClass( value.call(this, j, this.classes()) );
+					});
+				}
+
+				if ( value && typeof value === 'string' ) {
+
+					for ( var i = 0, l = this.length; i < l; ++i ){
+						
+						this[ i ].removeClass( value );
+					}
+				}
+
+				return this;
+			}
+
+			,toggleClass: function( value, stateVal ){
+
+				if ( pQuery.isFunction( value ) ) {
+					return this.each(function( i ) {
+						pQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
+					});
+				}
+
+				for ( var i = 0, l = this.length; i < l; ++i ){
+					
+					this[ i ].toggleClass( value, stateVal );
+				}
+
+				return this;
+			}
+		});
+
+		// getters
+		pQuery.fn.extend({
+
+			type: function(){
+
+				var first = this[0];
+
+				return first && first.type();
+			}
+
+			,classes: function(){
+
+				var first = this[0];
+				
+				return first && first.classes();
+			}
+
+			,parents: function(){
+
+				var ret
+					,i
+					,l
+					,n
+					;
+
+				for( i = 0, l = this.length; i < l; i++ ){
+
+					if ( i == 0 ){
+
+						ret = this[i].parents();
+
+					} else {
+
+						ret.push.apply( ret, this[i].parents() );
+
+						// Make sure that the results are unique
+						for ( n = length; n < ret.length; n++ ) {
+							for ( r = 0; r < length; r++ ) {
+								if ( ret[r] === ret[n] ) {
+									ret.splice(n--, 1);
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				return ret;
+			}
+		});
+
+		// checkers
+		pQuery.fn.extend({
+
+			hasClass: function( value ){
+
+				var first = this[0];
+
+				return first && first.hasClass.apply( first, arguments );
+			}
+		});
+
+		// tree manipulation
 		pQuery.fn.extend({
 
 			append: function(){
