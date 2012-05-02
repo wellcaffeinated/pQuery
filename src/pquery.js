@@ -255,27 +255,39 @@ define(
 					context = rootpQuery.world;
 				}
 
+				if ( context.type() === 'world' ){
+
+					// allow placing "world" as first selector if this is the world context
+					selector = selector.replace(/^world ?/, '');
+				}
+
 				var selectorObj = Slick.parse( selector )
 					,expressions = selectorObj.expressions
-					,acceptParents
 					;
-				
-				var i, currentExpression;
-				for (i = 0; (currentExpression = expressions[i]); i++){
+
+				function filter(child, id, parent) {
+
+					var acceptParents
+						,body
+						,testid
+						,check
+						,comb //last combinator
+						,last
+						,j
+						,currentBit
+						;
 					
-					acceptParents = {};
+					var i, currentExpression;
+					search: for (i = 0; (currentExpression = expressions[i]); i++){
+					
+						acceptParents = {};
 
-					function filter(child, id, parent) {
-
-						var body = child
-							,testid = id
-							,check
-							,comb //last combinator
-							,last = currentExpression.length - 1
-							,j = last
-							,currentBit = currentExpression[ j ]
-							;
-
+						body = child;
+						testid = id;
+						last = currentExpression.length - 1;
+						j = last;
+						currentBit = currentExpression[ j ];
+						
 						do {
 							
 							testid = body.id();
@@ -286,26 +298,28 @@ define(
 								return true;
 							}
 
-							//check id
+							// check id
 							check = (!currentBit.id || currentBit.id === testid);
 
-							//check classes
+							// check classes
 							check = check && (!currentBit.classList || body.hasClass.apply(body, currentBit.classList));
 
-							//check type
+							// check type
 							check = check && (!currentBit.tag || currentBit.tag === '*' || body.type() === currentBit.tag);
 
 							// child
-							if ((j === last)){
+							if (j === last){
 								
-								if(!check) return false;
+								// nope... maybe it will match another expression
+								if(!check) continue search;
 
 							// parents
 							} else {
 
 								if (comb === '>' && !check){
 
-									return false;
+									// nope... maybe it will match another expression
+									continue search;
 								}
 
 								if ( !check ){
@@ -318,24 +332,37 @@ define(
 							j--;
 							currentBit = currentExpression[j];
 
-							if (!currentBit){
+							// no more bits to check?
+							if ( !currentBit ){
+
+								// also, if we request an immediate child as first combinator we should have reached the root element
+								if ( comb === '>' && body.parent() !== context ){
+
+									// oops. fail. continue.
+									continue search;
+								}
 
 								// ok all tests passed
 
 								// add immediate parent as acceptable for this test expression
 								acceptParents[ child.parent().id() ] = true;
 
+								// found it! no need to keep searching other expressions
 								return true;
 							}
 
-						} while ( body = body.parent() );
+						// only climb the tree until we reach our context
+						} while ( (body = body.parent()) && body !== context );
 
 						// ran out of parents before the test was done
-						return false;
+						// keep checking other expressions
 					}
 
-					makeArray(context.children(filter, true), results);
+					return false;
+
 				}
+
+				makeArray(context.children(filter, true), results);
 
 				return results;
 			};

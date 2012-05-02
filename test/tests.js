@@ -13,7 +13,7 @@ define(
 				ok(pQuery('sphere').length === 0, 'No spheres yet');
 				ok(pQuery('*').length === 0, 'Nothing in world');
 				ok(window.pQuery === undefined, 'No global pQuery reference');
-				console.log(undefined)
+				
 			});
 
 			module('Adding elements');
@@ -31,27 +31,82 @@ define(
 
 			module('Finding Elements');
 
-				test('Selectors', function(){
+			test('Selectors', function(){
 
-				equal(pQuery('sphere').length, 2, 'sphere');
+				var expected = {
 
-				equal(pQuery('sphere sphere').length, 1, 'sphere sphere');
-				equal(pQuery('sphere > sphere').length, 0, 'sphere > sphere');
-				equal(pQuery('> sphere').length, 1, '> sphere');
-				equal(pQuery('* sphere').length, 1, '* sphere');
+					'sphere': 2,
 
-				equal(pQuery('sphere box').length, 1, 'sphere box');
-				equal(pQuery('> sphere box').length, 1, '> sphere box');
-				equal(pQuery('sphere > box').length, 1, 'sphere > box');
-				equal(pQuery('box > sphere').length, 1, 'box > sphere');
-				equal(pQuery('* box').length, 1, '* box');
+					'sphere sphere': 1,
+					'sphere > sphere': 0,
+					'> sphere': 1,
+					'* sphere': 1,
+					'* > sphere': 1,
 
-				equal(pQuery('sphere *').length, 2, 'sphere *');
-				equal(pQuery('*').length, 3, '*');
+					'sphere box': 1,
+					'> sphere box': 1,
+					'sphere > box': 1,
+					'box > sphere': 1,
+					'* box': 1,
 
-				equal(pQuery('sphere, box').length, 3, 'sphere, box');
-				equal(pQuery('sphere, sphere').length, 2, 'sphere, sphere');
-				equal(pQuery('box, box').length, 1, 'box, box');
+					'sphere *': 2,
+					'*': 3,
+
+					'sphere, box': 3,
+					'sphere, sphere': 2,
+					'box, box': 1,
+
+					'box world': 0
+
+				};
+
+				for ( var i in expected ){
+					
+					equal(pQuery(i).length, expected[i], i);
+					equal(pQuery('world '+i).length, expected[i], 'world '+i);
+
+				}
+
+			});
+
+			test('Selectors with context', function(){
+
+				var expected = {
+
+					'sphere': 1,
+
+					'sphere sphere': 0,
+					'sphere > sphere': 0,
+					'> sphere': 0,
+					'* sphere': 1,
+					'* > sphere': 1,
+
+					'box': 1,
+					'> box': 1,
+					'> sphere box': 0,
+					'sphere > box': 0,
+					'box > sphere': 1,
+					'* box': 0,
+
+					'sphere *': 0,
+					'*': 2,
+
+					'sphere, box': 2,
+					'sphere, sphere': 1,
+					'box, box': 1,
+
+					'world box': 0,
+					'world sphere': 0,
+					'world world': 0,
+					'world': 0
+
+				};
+
+				for ( var i in expected ){
+					
+					equal(s1.find(i).length, expected[i], 's1.find("'+i+'");');
+					
+				}
 
 			});
 		}
