@@ -18,6 +18,7 @@ define(
 
 					this._id = id || null;
 					this._classes = [];
+					this._oldclasses = this._classes;
 					this._parent = null;
 					this._children = {};
 				}
@@ -73,6 +74,42 @@ define(
 				    	if( (idx = classes.indexOf( cls[i] )) >= 0 )
 							classes.splice( idx, 1 );
 				   	}
+
+					return this;
+				}
+
+				,toggleClass: function( str, stateVal ){
+
+					var type = typeof str
+						,isBool = typeof stateVal === 'boolean'
+						;
+
+					if ( type === 'string' ){
+
+						var cls = str.split(' ')
+							,c
+							,state = stateVal
+							,i = 0
+							;
+
+						while ( (c = cls[ i++ ]) ) {
+
+							state = isBool ? state : !this.hasClass( c );
+							this[ state ? "addClass" : "removeClass" ]( c );
+						}
+
+					// toggle all classes in this case
+					} else if ( type === "undefined" || type === "boolean" ) {
+
+						var l;
+
+						if ( l = this._classes.length ){
+
+							this._oldclasses = this._classes;
+						}
+
+						this._classes = (l && str !== true) || str === false ? [] : this._oldclasses || [];
+					}
 
 					return this;
 				}
