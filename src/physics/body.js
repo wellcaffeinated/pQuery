@@ -5,8 +5,7 @@ define(
 	],
 	function(
 		Class,
-		Tools,
-		undefined
+		Tools
 	){
 
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )

@@ -11,11 +11,9 @@ define(
 		Slick,
 		Tools,
 		World,
-		Phyget,
+		Phyget
 		
 		//timer,
-
-		undefined
 	){
 		var pQuery = function( selector, context ){
 
