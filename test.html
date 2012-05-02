@@ -37,46 +37,55 @@
   	});
   	require(['pquery'], function(pQuery){
 
-      pQuery(function(P){//create other new world
+      function check (expected, actual) {
+        
+        if (actual === expected){
+          console.log('expected:', expected, 'got:', actual);
+        }
+        else {
+          console.error('expected:', expected, 'got:', actual);
+        }
 
-        P('<other>');
-
-      });
-
-
-
-  		window.P = pQuery(function(P){
-
-  			var a = P('<sphere>');
-        var b = pQuery('<sphere>');
-
-        console.log(a,b);
-
-        console.log('should find 1', P('sphere').length);
-        console.log('should find 1', pQuery('sphere').length);
-
-        console.log('should not find', P('other').length);
-        console.log('should find 1', pQuery('other').length);
-
-        a[0].add(b[0]);
-
-        console.log('should find 2', P('sphere').length);
-        console.log('should find 2', pQuery('sphere').length);
-
-        console.log('should not find', P('other').length);
-        console.log('should find 1', pQuery('other').length);
-
-        console.log('should find 1', P('sphere sphere').length);
-        console.log('should find 1', P('sphere *').length);
-        console.log('should find 2', P('* sphere').length);
-
-        console.log('should find 3', pQuery('*').length);
-
-        console.log('should find 1', P('> *').length);
+      }
 
 
-  		});
+      var P = pQuery.sub();
 
+			var a = pQuery('<sphere>');
+      var b = pQuery('<sphere>');
+      var c = P('<sphere>');
+
+      console.log(a, b, c);
+
+      check(0, pQuery('sphere').length);
+
+      check(0, pQuery('other').length);
+
+      a.append(b);
+
+      pQuery('world').append(a);
+
+      P('world').append(c);
+
+      check(2, pQuery('sphere').length);
+
+      check(1, pQuery('sphere sphere').length);
+      check(1, pQuery('sphere *').length);
+      check(2, pQuery('* sphere').length);
+
+      check(2, pQuery('*').length);
+
+      check(1, pQuery('> *').length);
+
+      check(1, P('sphere').length);
+
+      check(0, P('sphere sphere').length);
+      check(0, P('sphere *').length);
+      check(0, P('* sphere').length);
+
+      check(1, P('*').length);
+
+      check(1, P('> *').length);      
 
   		window.pQuery = pQuery;
   	});
