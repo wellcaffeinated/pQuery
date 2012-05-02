@@ -19,23 +19,7 @@ define(
 	){
 		var pQuery = function( selector, context ){
 
-				var ret
-					,w
-					;
-
-				if ( selector === true ) {
-					return pQuery.createWorld();
-				}
-				
-				// HANDLE: $(function)
-				// Shortcut for context specific
-				if ( !World.isWorld( selector ) && pQuery.isFunction( selector ) ) {
-					ret = pQuery( true );
-					selector( ret );
-					return ret;
-				}
-
-				return new pQuery.fn.init( selector, context );
+				return new pQuery.fn.init( selector, context, rootpQuery );
 			}
 
 			// placeholder for no context
@@ -54,8 +38,7 @@ define(
 			// Match a standalone tag
 			,rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>)?$/
 
-			,worlds = []
-
+			// A central reference to the root pQuery(world)
 			,rootpQuery
 
 			// to hold methods for world Api
@@ -65,7 +48,7 @@ define(
 		pQuery.fn = pQuery.prototype = {
 
 			constructor: pQuery,
-			init: function( selector, context ) {
+			init: function( selector, context, rootpQuery ) {
 				var match
 					,elem
 					,ret
@@ -77,10 +60,19 @@ define(
 					return this;
 				}
 
-				// Handle $(World)
-				if ( World.isWorld( selector ) ) {
+				// Handle $(Body)
+				if ( Phyget.isBody( selector ) ) {
 
 					this.context = this[0] = selector;
+					this.length = 1;
+					return this;
+				}
+
+				// The world only exists once, optimize finding it
+				if ( selector === "world" && !context ) {
+					this.context = this.world;
+					this[0] = this.world;
+					this.selector = selector;
 					this.length = 1;
 					return this;
 				}
@@ -102,7 +94,7 @@ define(
 						// HANDLE: $(html) -> $(array)
 						if ( match[1] ) {
 							context = context instanceof pQuery ? context[0] : context;
-							doc = context || noContext;
+							doc = context || this.world;
 
 							// If a single string is passed in and it's a single tag
 							// just do a createPhyget and skip the rest
@@ -117,18 +109,6 @@ define(
 								// disable rich fragment creation
 								pQuery.error('Only simple <tag> creation is supported');
 								
-							}
-
-							if ( doc ){
-								
-								// add to world if world is context
-								pQuery.each( selector, function(){
-
-									doc.add( this );
-
-								});
-
-								this.context = context;
 							}
 
 							return pQuery.merge( this, selector );
@@ -209,33 +189,30 @@ define(
 
 		pQuery.extend( Tools );
 
-		// world methods
-		worldMethods = {
-
-			step: function( timestep, now ){
-
-				this.context.step( timestep, now );
-				return this;
-			}
-		};
-
 		// asset creation
 		pQuery.extend({
 
-			createWorld: function(){
-				var w;
-				worlds.push( w = new World() );
+			// create a new pQuery with a new world
+			sub: function() {
+				function pQuerySub( selector, context ) {
+					return new pQuerySub.fn.init( selector, context );
+				}
+				pQuery.extend( true, pQuerySub, this );
+				pQuerySub.superclass = this;
+				pQuerySub.fn = pQuerySub.prototype = this();
+				pQuerySub.fn.constructor = pQuerySub;
+				pQuerySub.fn.world = new World();
+				pQuerySub.sub = this.sub;
+				pQuerySub.fn.init = function init( selector, context ) {
+					if ( context && context instanceof pQuery && !(context instanceof pQuerySub) ) {
+						context = pQuerySub( context );
+					}
 
-				// reset rootpquery
-				rootpQuery = pQuery( worlds );
-
-				return pQuery.extend(function( s, c ){
-
-						return pQuery( s, c || w );
-					},
-					worldMethods,
-					pQuery( w )
-				);
+					return pQuery.fn.init.call( this, selector, context, rootpQuerySub );
+				};
+				pQuerySub.fn.init.prototype = pQuerySub.fn;
+				var rootpQuerySub = pQuerySub('world');
+				return pQuerySub;
 			}
 
 			,createPhyget: function( type ){
@@ -276,14 +253,8 @@ define(
 				}
 
 				if ( !context ){
-					//search all worlds
-
-					for ( var i = 0, l = worlds.length; i < l; ++i ){
-						
-						pQuery.find( selector, worlds[i], results );
-					}
-
-					return results;
+					// shouldn't need this... but just in case
+					context = rootpQuery.world;
 				}
 
 				var selectorObj = Slick.parse( selector )
@@ -381,7 +352,9 @@ define(
 		// physics methods
 		pQuery.fn.extend({
 
-			find: function( selector ){
+			world: new World()
+
+			,find: function( selector ){
 
 				var self = this,
 					i, l;
@@ -440,7 +413,50 @@ define(
 			}
 		});
 
-		rootpQuery = pQuery( worlds );
+		// world methods
+		pQuery.fn.extend({
+
+			step: function( timestep, now ){
+
+				this.world.step( timestep, now );
+				return this;
+			}
+		});
+
+		// set up world
+		rootpQuery = pQuery('world');
+
+		pQuery.fn.extend({
+
+			append: function(){
+
+				return this.manip(arguments, function( body ){
+
+					this.add( body );
+				});
+			}
+
+			,manip: function( args, callback ){
+
+				// TODO make this more general
+				var value = args[0]
+					,fragment = value.pquery? value[0] : value
+					;
+
+				if ( this[0] ){
+
+					for( var i = 0, l = this.length; i < l; i++ ){
+
+						callback.call(
+							this[i],
+							fragment
+						);
+					}	
+				}
+
+				return this;				
+			}
+		});
 
 		return pQuery;
 	}

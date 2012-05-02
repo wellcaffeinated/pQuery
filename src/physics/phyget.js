@@ -29,9 +29,14 @@ define(
 			return new (PhygetRegistry[type] = Phyget);
 		}
 		
+		function isBody( b ) {
+			
+			return (b instanceof Body);
+		}
 
 		return {
-			create: create
+			create: create,
+			isBody: isBody
 		};
 	}
 );
