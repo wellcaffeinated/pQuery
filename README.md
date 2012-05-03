@@ -110,7 +110,7 @@ This project is at its infancy. It doesn't work yet.
 	});
 
 	// create an animation loop... or use your own
-	pQuery.timer.subscribe(function(time, delta) {
+	pQuery.ticker.subscribe(function(time, delta) {
 
 		var precision = 1/180;
 		pQuery('world').step(precision, time);

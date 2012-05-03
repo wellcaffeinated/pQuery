@@ -24,31 +24,36 @@ define(
 			,__extends__: Body
 
 			// used in stepping process
-			,resolve: {
+			,resolveAcceleration: function( delta ){
 
-				acceleration: function( delta ){
+				this.x += this.ax * (delta *= delta);
+				this.y += this.ay * delta;
+				this.z += this.az * delta;
+				this.ax = this.ay = this.az = 0;
+			}
 
-					this.x += this.ax * (delta *= delta);
-					this.y += this.ay * delta;
-					this.z += this.az * delta;
-					this.ax = this.ay = this.az = 0;
-				}
+			,resolveInertia: function( delta ){
 
-				,inertia: function( delta ){
+				var x = this.x*2 - this.px
+					,y = this.y*2 - this.py
+					,z = this.z*2 - this.pz
+					;
 
-					var x = this.x*2 - this.px
-						,y = this.y*2 - this.py
-						,z = this.z*2 - this.pz
-						;
+				this.px = this.x;
+				this.py = this.y;
+				this.pz = this.z;
+				this.x = x;
+				this.y = y;
+				this.z = z;
+			}
 
-					this.px = this.x;
-					this.py = this.y;
-					this.pz = this.z;
-					this.x = x;
-					this.y = y;
-					this.z = z;
-				}
+			,position: function(){
 
+				return {
+					x: this.x,
+					y: this.y,
+					z: this.z
+				};
 			}
 
 		});

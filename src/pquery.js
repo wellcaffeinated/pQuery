@@ -3,6 +3,7 @@ define(
 		'util/slick.parser',
 		'util/tools',
 		'util/callbacks',
+		'util/ticker',
 		'physics/world',
 		'physics/phyget'
 		
@@ -12,6 +13,7 @@ define(
 		Slick,
 		Tools,
 		Callbacks,
+		Ticker,
 		World,
 		Phyget
 		
@@ -194,8 +196,10 @@ define(
 		// asset creation
 		pQuery.extend({
 
+			ticker: Ticker
+
 			// create a new pQuery with a new world
-			sub: function() {
+			,sub: function() {
 				function pQuerySub( selector, context ) {
 					return new pQuerySub.fn.init( selector, context );
 				}
@@ -435,6 +439,14 @@ define(
 				});
 			}
 
+			,appendTo: function(){
+
+				return this.manip(arguments, function( body ){
+
+					this.addTo( body );
+				});
+			}
+
 			,manip: function( args, callback ){
 
 				// TODO make this more general
@@ -566,6 +578,23 @@ define(
 
 				return this;
 			}
+
+			,data: function( hash, val ){
+
+				if ( !val ){
+
+					if ( !this[0] ) return null;
+
+					return this[0].data( hash );
+				}
+
+				for ( var i = 0, l = this.length; i < l; ++i ){
+
+					this[ i ].data( hash, val );
+				}
+
+				return this;
+			}
 		});
 
 		// getters
@@ -617,6 +646,16 @@ define(
 
 				return ret;
 			}
+
+
+			,position: function( style ){
+
+				var first = this[0];
+				
+				// TODO define styles of return value
+
+				return first && first.position && first.position();
+			}
 		});
 
 		// checkers
@@ -630,7 +669,26 @@ define(
 			}
 		});
 
-		
+		// events
+		pQuery.fn.extend({
+
+			// TODO improve
+			on: function( evt, callback ){
+
+				var i
+					,el
+					;
+
+				for ( var i = this.length - 1; i > -1; i-- ){
+
+					el = this[i];
+
+					el.subscribe( evt, pQuery.proxy( callback, el ) );
+				}
+
+				return this;
+			}
+		});
 
 		return pQuery;
 	}
