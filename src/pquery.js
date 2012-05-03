@@ -2,6 +2,7 @@ define(
 	[
 		'util/slick.parser',
 		'util/tools',
+		'util/callbacks',
 		'physics/world',
 		'physics/phyget'
 		
@@ -10,6 +11,7 @@ define(
 	function(
 		Slick,
 		Tools,
+		Callbacks,
 		World,
 		Phyget
 		
@@ -186,6 +188,8 @@ define(
 		pQuery.fn.extend = pQuery.extend = Tools.extend;
 
 		pQuery.extend( Tools );
+
+		pQuery.Callbacks = Callbacks;
 
 		// asset creation
 		pQuery.extend({
@@ -374,7 +378,7 @@ define(
 			return haystack.contains( needle );
 		};
 
-		// physics methods
+		// tree manipulation and retrieval
 		pQuery.fn.extend({
 
 			world: new World()
@@ -418,7 +422,45 @@ define(
 
 			}
 
-			,interact: function(){
+			,contains: function(){
+
+				// TODO
+			}
+
+			,append: function(){
+
+				return this.manip(arguments, function( body ){
+
+					this.add( body );
+				});
+			}
+
+			,manip: function( args, callback ){
+
+				// TODO make this more general
+				var value = args[0]
+					,fragment = value.pquery? value[0] : value
+					;
+
+				if ( this[0] ){
+
+					for( var i = 0, l = this.length; i < l; i++ ){
+
+						callback.call(
+							this[i],
+							fragment
+						);
+					}	
+				}
+
+				return this;				
+			}
+		});
+
+		// physics methods
+		pQuery.fn.extend({
+			
+			interact: function(){
 
 				// TODO
 			}
@@ -588,38 +630,7 @@ define(
 			}
 		});
 
-		// tree manipulation
-		pQuery.fn.extend({
-
-			append: function(){
-
-				return this.manip(arguments, function( body ){
-
-					this.add( body );
-				});
-			}
-
-			,manip: function( args, callback ){
-
-				// TODO make this more general
-				var value = args[0]
-					,fragment = value.pquery? value[0] : value
-					;
-
-				if ( this[0] ){
-
-					for( var i = 0, l = this.length; i < l; i++ ){
-
-						callback.call(
-							this[i],
-							fragment
-						);
-					}	
-				}
-
-				return this;				
-			}
-		});
+		
 
 		return pQuery;
 	}

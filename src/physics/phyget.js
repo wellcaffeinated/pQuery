@@ -1,37 +1,38 @@
 define(
 	[
-		'util/class',
-		'physics/body'
+		'physics/body',
+		'physics/phygets/sphere',
+		'physics/phygets/point'
 	],
 	function(
-		Class,
-		Body
+	    Body,
+		Sphere,
+		Point
 	){
 
-		//temporary
-		//TODO - remove and make this really work
-		var PhygetRegistry = {};
+		var PhygetRegistry = {
+
+			'sphere': Sphere,
+			'point': Point
+		};
 
 		function create( type ){
 
-			var Phyget = PhygetRegistry[type] || Class({
-				
-				_type: type
-				
-				,__constructor__: function(){
-
-					this.__extends__.call( this );
-				}
-
-				,__extends__: Body
-			});
-
-			return new (PhygetRegistry[type] = Phyget);
+			return new PhygetRegistry[ type ]();
 		}
 		
 		function isBody( b ) {
 			
-			return (b instanceof Body);
+			var bdy = b
+				,ret = false
+				;
+
+			while( bdy && !(ret = bdy instanceof Body) ){
+
+				bdy = bdy.__extends__;
+			}
+
+			return ret;
 		}
 
 		return {
