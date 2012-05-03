@@ -25,9 +25,9 @@ define(
 					this._oldclasses = this._classes;
 					this._parent = null;
 					this._children = {};
-					this._callbacks = {}
-					this._bubble = {}
-
+					this._callbacks = {};
+					this._bubble = {};
+					this._data = {}; // arbitrary data storage
 
 					var evt
 						,self = this
@@ -50,7 +50,7 @@ define(
 
 				,_fire: function( evt, args ){
 					
-					this._callbacks[ evt ].fireWith(this, args );
+					this._callbacks[ evt ].fire( args );
 					return this;
 				}
 
@@ -400,18 +400,10 @@ define(
 					return false;
 				}
 
-				// notify parent tree to refresh children if necessary
-				// returns (bool) children changed?
-				/*,refreshChildren: function(){
+				,data: function( hash, val ){
 
-					var par = this.parent();
-					if ( par ){
-
-						par.refreshChildren();
-					}
-
-					return false;
-				}*/
+					return val? (this._data[ hash ] = val) : this._data[ hash ];
+				}
 
 			})
 			;
