@@ -1,11 +1,13 @@
 define(
 	[
 		'util/class',
-		'util/tools'
+		'util/tools',
+		'util/callbacks'
 	],
 	function(
 		Class,
-		Tools
+		Tools,
+		Callbacks
 	){
 
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
@@ -14,6 +16,8 @@ define(
 
 				_type: 'body'
 
+				,_events: ['modified', 'children.modified']
+				
 				,__constructor__: function( id ){
 
 					this._id = id || null;
@@ -21,6 +25,51 @@ define(
 					this._oldclasses = this._classes;
 					this._parent = null;
 					this._children = {};
+					this._callbacks = {}
+					this._bubble = {}
+
+
+					var evt
+						,self = this
+						;
+
+					for( var i = 0, l = this._events.length; i < l; i++ ){
+
+						evt = this._events[i];
+
+						!function(cb){
+
+							self._bubble[ evt ] = function(){
+								
+								cb.fire.apply(cb, arguments );
+							};
+
+						}(this._callbacks[ evt ] = Callbacks());
+					}
+				}
+
+				,_fire: function( evt, args ){
+					
+					this._callbacks[ evt ].fireWith(this, args );
+					return this;
+				}
+
+				,subscribe: function( evt, callback ){
+
+					var cb = this._callbacks[ evt ];
+
+					if (cb) cb.add( callback );
+
+					return this;
+				}
+
+				,unsubscribe: function( evt, callback ){
+
+					var cb = this._callbacks[ evt ];
+					
+					if (cb) cb.remove( callback );
+
+					return this;
 				}
 
 				,requestUniqueId: function(){
@@ -41,12 +90,19 @@ define(
 
 					if ( val && typeof val === 'string'){
 
+						// TODO: NEED TO USE CALLBACKS
 						if (par){
 
 							par.remove( this );
 							this._id = val;
 							par.add( this );
 							return this._id;
+						}
+
+						if ( this._id !== val ){
+
+							// announce changed ( modifiedArray, origin, prop )
+							this._fire( 'modified', [ [this], this, 'id' ] );
 						}
 
 						return this._id = val;
@@ -57,8 +113,17 @@ define(
 
 				,addClass: function( str ){
 
+					var oldlen = this._classes.length;
+
 					this.removeClass( str );
 				    this._classes.push.apply( this._classes, str.split(' ') );
+
+				    if ( this._classes.length !== oldlen ){
+
+				    	// announce changed ( modifiedArray, origin, prop )
+						this._fire( 'modified', [ [this], this, 'classes' ] );
+					}
+
 					return this;
 				}
 
@@ -67,12 +132,19 @@ define(
 					var cls = str.split(' ')
 						,classes = this._classes
 						,idx
+						,oldlen = this._classes.length
 						;
 
 				    for (var i = 0, l = cls.length; i < l; ++i){
 				    	
 				    	if( (idx = classes.indexOf( cls[i] )) >= 0 )
 							classes.splice( idx, 1 );
+				   	}
+
+				   	if ( this._classes.length !== oldlen ){
+
+				   		// announce changed ( modifiedArray, origin, prop )
+						this._fire( 'modified', [ [this], this, 'classes' ] );
 				   	}
 
 					return this;
@@ -101,7 +173,9 @@ define(
 					// toggle all classes in this case
 					} else if ( type === "undefined" || type === "boolean" ) {
 
-						var l;
+						var l
+							,old = this._classes
+							;
 
 						if ( l = this._classes.length ){
 
@@ -109,6 +183,12 @@ define(
 						}
 
 						this._classes = (l && str !== true) || str === false ? [] : this._oldclasses || [];
+
+						if ( old !== this._classes ){
+
+							// announce changed ( modifiedArray, origin, prop )
+							this._fire( 'modified', [ [this], this, 'classes' ] );
+						}
 					}
 
 					return this;
@@ -145,7 +225,12 @@ define(
 					if ( body.parent( this ) === this ){
 						
 						this._children[ body.id() ] = body;
-						//this.refreshChildren();
+						
+						body.subscribe( 'children.modified', this._bubble['children.modified'] );
+						body.subscribe( 'modified', this._bubble['children.modified'] );
+
+						// announce children changed ( modifiedArray, origin, prop )
+						this._fire( 'children.modified', [ [body], this, 'children' ] );
 					}
 
 					return this;
@@ -159,9 +244,18 @@ define(
 
 				,remove: function( body ){
 
-					body.parent( null );
-					delete this._children[ body.id() ];
-					//this.refreshChildren();
+					if (body.parent() === this){
+
+						body.parent( null );
+						delete this._children[ body.id() ];
+
+						body.unsubscribe( 'children.modified', this._bubble['children.modified'] );	
+						body.unsubscribe( 'modified', this._bubble['children.modified'] );
+
+						// announce children changed ( modifiedArray, origin, prop )
+						this._fire( 'children.modified', [ [body], this, 'children' ] );
+					}
+					
 					return this;
 				}
 
@@ -169,11 +263,11 @@ define(
 				,parent: function( par ){
 
 					// parents can't be children (stop grandfather paradox :)
-					if ( par && (this._parent !== par) && (this !== par) && (par.parents().indexOf(this) < 0) ){
+					if ( (par || par === null) && (this._parent !== par) && (this !== par) && (par.parents().indexOf(this) < 0) ){
 
-						if( this._parent ) this._parent.remove( this );
+						if ( this._parent ) this._parent.remove( this );
 						this._parent = par;
-						this._parent.add( this );
+						if ( par ) this._parent.add( this );
 					}
 
 					return this._parent;

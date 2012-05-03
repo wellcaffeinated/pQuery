@@ -4,11 +4,11 @@ define(
 		function run(pQuery){
 
 			var s1 = pQuery('<sphere>');
-			var box = pQuery('<box>');
+			var point = pQuery('<point>');
 			var s2 = pQuery('<sphere>');
 			var w = pQuery('world');
 
-			s1.append(box.append(s2));
+			s1.append(point.append(s2));
 
 			test('World setup', function(){
 
@@ -22,8 +22,8 @@ define(
 
 			test('Add Elements', function(){
 
-				deepEqual(s2[0].parent(), box[0], 'box holds second sphere');
-				deepEqual(box[0].parent(), s1[0], 'first sphere holds box');
+				deepEqual(s2[0].parent(), point[0], 'point holds second sphere');
+				deepEqual(point[0].parent(), s1[0], 'first sphere holds point');
 
 			});
 
@@ -43,20 +43,20 @@ define(
 					'* sphere': 1,
 					'* > sphere': 1,
 
-					'sphere box': 1,
-					'> sphere box': 1,
-					'sphere > box': 1,
-					'box > sphere': 1,
-					'* box': 1,
+					'sphere point': 1,
+					'> sphere point': 1,
+					'sphere > point': 1,
+					'point > sphere': 1,
+					'* point': 1,
 
 					'sphere *': 2,
 					'*': 3,
 
-					'sphere, box': 3,
+					'sphere, point': 3,
 					'sphere, sphere': 2,
-					'box, box': 1,
+					'point, point': 1,
 
-					'box world': 0
+					'point world': 0
 
 				};
 
@@ -83,21 +83,21 @@ define(
 					'* sphere': 1,
 					'* > sphere': 1,
 
-					'box': 1,
-					'> box': 1,
-					'> sphere box': 0,
-					'sphere > box': 0,
-					'box > sphere': 1,
-					'* box': 0,
+					'point': 1,
+					'> point': 1,
+					'> sphere point': 0,
+					'sphere > point': 0,
+					'point > sphere': 1,
+					'* point': 0,
 
 					'sphere *': 0,
 					'*': 2,
 
-					'sphere, box': 2,
+					'sphere, point': 2,
 					'sphere, sphere': 1,
-					'box, box': 1,
+					'point, point': 1,
 
-					'world box': 0,
+					'world point': 0,
 					'world sphere': 0,
 					'world world': 0,
 					'world': 0
@@ -117,11 +117,11 @@ define(
 
 			var pQueryalt = pQuery.sub();
 			var s1alt = pQueryalt('<sphere>');
-			var boxalt = pQueryalt('<box>');
+			var pointalt = pQueryalt('<point>');
 			var s2alt = pQueryalt('<sphere>');
 			var walt = pQueryalt('world');
 
-			s1alt.append(boxalt.append(s2alt));
+			s1alt.append(pointalt.append(s2alt));
 
 			test('Selectors', function(){
 
@@ -137,20 +137,20 @@ define(
 					'* sphere': 1,
 					'* > sphere': 1,
 
-					'sphere box': 1,
-					'> sphere box': 1,
-					'sphere > box': 1,
-					'box > sphere': 1,
-					'* box': 1,
+					'sphere point': 1,
+					'> sphere point': 1,
+					'sphere > point': 1,
+					'point > sphere': 1,
+					'* point': 1,
 
 					'sphere *': 2,
 					'*': 3,
 
-					'sphere, box': 3,
+					'sphere, point': 3,
 					'sphere, sphere': 2,
-					'box, box': 1,
+					'point, point': 1,
 
-					'box world': 0
+					'point world': 0
 
 				};
 
@@ -177,21 +177,21 @@ define(
 					'* sphere': 1,
 					'* > sphere': 1,
 
-					'box': 1,
-					'> box': 1,
-					'> sphere box': 0,
-					'sphere > box': 0,
-					'box > sphere': 1,
-					'* box': 0,
+					'point': 1,
+					'> point': 1,
+					'> sphere point': 0,
+					'sphere > point': 0,
+					'point > sphere': 1,
+					'* point': 0,
 
 					'sphere *': 0,
 					'*': 2,
 
-					'sphere, box': 2,
+					'sphere, point': 2,
 					'sphere, sphere': 1,
-					'box, box': 1,
+					'point, point': 1,
 
-					'world box': 0,
+					'world point': 0,
 					'world sphere': 0,
 					'world world': 0,
 					'world': 0
@@ -216,7 +216,7 @@ define(
 				pQuery('sphere').addClass('foo');
 				ok(s1.hasClass('foo'), 'Class set on first sphere');
 				ok(s2.hasClass('foo'), 'Class set on second sphere');
-				ok(!box.hasClass('foo'), 'Class not set on box');
+				ok(!point.hasClass('foo'), 'Class not set on point');
 
 				s2.removeClass('foo').addClass('one two');
 				ok(!s2.hasClass('foo'), 'Removed class');
