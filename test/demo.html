@@ -116,6 +116,20 @@
  
       //add the circle to the stage.
       stage.addChild(circle);
+
+      //center point
+      var center = new Graphics();
+      g.setStrokeStyle(1);
+      g.beginStroke(Graphics.getRGB(255,200,200,1));
+      g.drawCircle(0,0,5);
+      var cent = new Shape(center);
+      //set the initial x position, and the reset position
+      cent.x = canvas.width / 2;
+ 
+      //set the y position
+      cent.y = canvas.height / 2;
+
+      stage.addChild(cent);
  
       //tell the stage to render to the canvas
       stage.update();
@@ -145,10 +159,28 @@
       });
 
       var Pcircle = pQuery('<sphere>').data('view', circle).appendTo( world );
+      Pcircle.position(100, 100);
+      Pcircle[0].px = 100-2;
+      Pcircle[0].py = 100;
+      world.interact(function( delta, sph ){
+
+        // newtonian gravity
+        var pos = sph.position()
+          ,x = cent.x - pos.x
+          ,y = cent.y - pos.y
+          ,lensq = x*x + y*y
+          ,len = Math.sqrt(lensq)
+          ,g = 7/lensq
+          ;
+
+        
+        sph.accelerate(x*g/len, y*g/len);
+
+      }, 'sphere');
 
       pQuery.ticker.subscribe(function(time, delta){
 
-        world.step(1/180, time);
+        world.step(40/4, time);
 
       });
 

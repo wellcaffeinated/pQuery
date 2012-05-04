@@ -472,7 +472,57 @@ define(
 		// physics methods
 		pQuery.fn.extend({
 			
-			interact: function(){
+			// types: soft, hard, collision
+			interact: function( type, callback, sel ){
+
+				var bodies
+					;
+
+				if ( pQuery.isFunction( type ) ){
+
+					sel = callback;
+					callback = type;
+					type = 'soft'; //assume soft interaction
+
+				} else if ( typeof type === 'object' ){
+					
+					
+					return this;
+				}
+
+				// use current bodies
+				// don't delegate
+				if ( !sel ){
+
+					bodies = pQuery.makeArray(this);
+					this.world.registerInteraction( type, bodies, callback );
+
+				// delegate (refresh when needed)
+				} else {
+
+					for ( var i = 0, l = this.length; i < l; ++i ){
+						
+						bodies = (function( par ){
+
+							var p = pQuery( par );
+
+							return function(){
+
+								// return children that match selector inside parent
+								return pQuery.makeArray( p.find( sel ) );
+
+							};
+
+						})( this[i] );
+
+						this.world.registerInteraction( type, bodies, callback, this[ i ] );
+					}
+				}
+				
+				return this;
+			}
+
+			,uninteract: function(){
 
 				// TODO
 			}
@@ -489,6 +539,42 @@ define(
 				}
 
 				// TODO
+			}
+
+			,accelerate: function( accel ){
+
+				var ch = this[0]
+					,x
+					,y
+					,z
+					;
+				
+				// make sure we actually want to loop through all of these
+				if ( 
+				    (
+				     	typeof accel === 'object' &&
+				     	(x = accel.x) !== 0 ||
+				     	(y = accel.y) !== 0 ||
+				     	(z = accel.z) !== 0
+				    ) ||
+				    (
+				     	(x = accel) !== 0 ||
+				     	(y = arguments[1]) !== 0 ||
+				     	(z = arguments[2]) !== 0
+				    )
+				) {
+
+					// set position for all
+					for ( var i = this.length - 1; i > -1; i-- ){
+
+						ch = this[i];
+						ch.accelerate(x, y, z);
+
+					}
+
+				}
+
+				return this;
 			}
 		});
 
@@ -648,12 +734,27 @@ define(
 			}
 
 
-			,position: function( style ){
+			,position: function( pos ){
 
 				var first = this[0];
 				
-				// TODO define styles of return value
+				if ( typeof pos === 'string' ){
+					
+					// TODO define styles of return value	
+				} else if ( arguments.length > 0 ) {
 
+					// set position for all
+					for ( var i = this.length - 1; i > -1; i-- ){
+
+						first = this[i];
+						first.position.apply( first, arguments );
+
+					}
+
+					return this;
+				}
+
+				// else return position of first
 				return first && first.position && first.position();
 			}
 		});
