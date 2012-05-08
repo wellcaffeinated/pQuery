@@ -11,6 +11,8 @@ define(
 		var Basic = Class({
 				
 			_type: 'basic'
+
+			,_events: Body.prototype._events.concat(['physics.modified'])
 			
 			,__constructor__: function(){
 
@@ -84,7 +86,7 @@ define(
 						this.y = pos.y || this.y;
 						this.z = pos.z || this.z;
 
-						this._fire( 'modified', [ [this], this, 'position' ] );
+						this._fire( 'physics.modified', [ [this], this, 'position' ] );
 
 					} else {
 
@@ -92,7 +94,7 @@ define(
 						this.y = arguments[1] || this.y;
 						this.z = arguments[2] || this.z;
 
-						this._fire( 'modified', [ [this], this, 'position' ] );
+						this._fire( 'physics.modified', [ [this], this, 'position' ] );
 					}
 				}
 
@@ -118,7 +120,7 @@ define(
 						this.py = this.y - (vel.y || 0);
 						this.pz = this.z - (vel.z || 0);
 
-						this._fire( 'modified', [ [this], this, 'velocity' ] );
+						this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
 
 					} else {
 
@@ -126,7 +128,7 @@ define(
 						this.py = this.y - (arguments[1] || 0);
 						this.pz = this.z - (arguments[2] || 0);
 
-						this._fire( 'modified', [ [this], this, 'velocity' ] );
+						this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
 					}
 				}
 
@@ -152,7 +154,7 @@ define(
 						accel.y && this.ay += accel.y;
 						accel.z && this.az += accel.z;
 
-						this._fire( 'modified', [ [this], this, 'acceleration' ] );
+						this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 
 					} else {
 
@@ -160,7 +162,7 @@ define(
 						if ( arguments[1] ) this.ay += arguments[1]
 						if ( arguments[2] ) this.az += arguments[2]
 
-						this._fire( 'modified', [ [this], this, 'acceleration' ] );
+						this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 					}
 				}
 

@@ -129,12 +129,12 @@
           .velocity( vx, vy );
       }
 
-      for(var i = 0; i < 40; i++){
+      for(var i = 0, n = 10; i < n; i++){
 
-        addCircle( Math.random()*100, Math.random()*400, 10, Math.random(), 0 );
+        addCircle( i*25%465+10+5*Math.random(), Math.floor((i*30+10)/465)*25+10+5*Math.random(), 10, 0*Math.random(), 0 );
       }
 
-      /*world.interact(function( delta, sph, idx, list ){
+      world.interact(function( delta, sph, idx, list ){
 
         for(var i = idx+1, l = list.length; i < l; i++){
           // newtonian gravity
@@ -144,16 +144,16 @@
             ,y = other.y - pos.y
             ,lensq = x*x + y*y
             ,len = Math.sqrt(lensq)
-            ,g = 7/lensq
+            ,g = 1/(lensq*len)
             ;
           
-          sph.accelerate(x=x*g/len, y=y*g/len);
+          sph.accelerate(x=x*g, y=y*g);
           list[i].accelerate(-x,-y);
         }
 
-      }, 'sphere');*/
+      }, 'sphere');
 
-      world.interact(function( delta, sph ){
+      /*world.interact(function( delta, sph ){
 
         // earth gravity
         sph.accelerate(0, 0.001);
@@ -162,9 +162,9 @@
         var v = sph.velocity()
           l = 10000*Math.sqrt(v.x*v.x + v.y*v.y)
           ;
-        //sph.accelerate(-v.x/l,-v.y/l)
+        sph.accelerate(-v.x/l,-v.y/l)
 
-      }, 'sphere');
+      }, 'sphere');*/
 
       world.interact('hard', function( delta, sph, idx, list ){
 
@@ -172,13 +172,22 @@
         sph.x = Math.min(Math.max(10, sph.x), 500-10);
         sph.y = Math.min(Math.max(10, sph.y), 500-10);
 
-        if(sph.x === 10 || sph.x === 490 || sph.y === 0 || sph.y === 490){
+        if(sph.x === 10 || sph.x === 490){
           // collision disipation
           var v = sph.velocity()
-            f = 100*Math.sqrt(v.x*v.x + v.y*v.y)
+            ,f=1.1
             ;
           
-          sph.accelerate(-v.x/f,-v.y/f);
+          sph.velocity(v.x/f, v.y/f);
+        }
+
+        if(sph.y === 0 || sph.y === 490){
+          var v = sph.velocity()
+            ,f=1.1
+            ;
+          
+          sph.velocity(v.x/f,v.y/f);
+
         }
 
         // each other
@@ -199,6 +208,15 @@
             // by half the conflicting length
             other.position(pos2.x - x*factor, pos2.y - y*factor);
             sph.position(pos1.x + x*factor, pos1.y + y*factor);
+
+            var v = sph.velocity()
+            ,f=1.002
+            ;
+            
+            sph.velocity(v.x/f,v.y/f);
+
+            v = other.velocity();
+            other.velocity(v.x/f,v.y/f);
           }
         }
       }, 'sphere');
@@ -207,8 +225,8 @@
 
       pQuery.ticker.subscribe(function(time, delta){
 
-        world.step(10, time);
-        //info.innerHTML = 'FPS: '+world[0].FPS+'<br/>steps: '+world[0].nsteps;
+        world.step(5, time);
+        info.innerHTML = 'FPS: '+world[0].FPS+'<br/>steps: '+world[0].nsteps;
 
       });
 

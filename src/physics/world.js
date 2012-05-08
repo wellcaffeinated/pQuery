@@ -150,6 +150,7 @@ define(
 					;
 
 				diff = (now - this.time);
+				//timestep = diff/2;
 				this.FPS = 1000/diff;
 				this.nsteps = Math.ceil(diff/timestep);
 
