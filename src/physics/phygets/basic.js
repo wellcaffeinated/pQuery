@@ -15,7 +15,9 @@ define(
 			,__constructor__: function(){
 
 				this.x = this.y = this.z = 0;
+				this.midx = this.midy = this.midz = 0;
 				this.px = this.py = this.pz = 0;
+				//this.vx = this.vy = this.vz = 0;
 				this.ax = this.ay = this.az = 0;
 
 				Basic.prototype.__extends__.call( this );
@@ -26,25 +28,44 @@ define(
 			// used in stepping process
 			,resolveAcceleration: function( delta ){
 
-				this.x += this.ax * (delta *= delta);
+				this.midx = this.x;
+				this.midy = this.y;
+				this.midz = this.z;
+
+				// verlet
+				this.x += this.ax * (delta*=delta);
 				this.y += this.ay * delta;
 				this.z += this.az * delta;
+				
+				//euler
+				/*this.vx += this.ax*delta;
+				this.vy += this.ay*delta;
+				this.vz += this.az*delta;*/
+
 				this.ax = this.ay = this.az = 0;
 			}
 
 			,resolveInertia: function( delta ){
 
-				var x = this.x*2 - this.px
-					,y = this.y*2 - this.py
-					,z = this.z*2 - this.pz
+				// Verlet
+				var x = this.midx*2 - this.px
+					,y = this.midy*2 - this.py
+					,z = this.midz*2 - this.pz
 					;
 
-				this.px = this.x;
-				this.py = this.y;
-				this.pz = this.z;
-				this.x = x;
-				this.y = y;
-				this.z = z;
+				this.px = this.midx;
+				this.py = this.midy;
+				this.pz = this.midz;
+
+				// this step alows modifications to x,y,z to apply constraints
+				this.x = x - (this.midx - this.x);
+				this.y = y - (this.midy - this.y);
+				this.z = z - (this.midz - this.z);
+
+				//euler
+				/*this.x += this.vx*delta;
+				this.y += this.vy*delta;
+				this.z += this.vz*delta;*/
 
 			}
 
@@ -80,6 +101,40 @@ define(
 					y: this.y,
 					z: this.z
 				};
+			}
+
+			,velocity: function( vel ){
+
+				var type
+					;
+
+				if ( arguments.length > 0 ){
+
+					type = typeof vel;
+
+					if ( type === 'object' ){
+
+						this.px = this.x - (vel.x || 0);
+						this.py = this.y - (vel.y || 0);
+						this.pz = this.z - (vel.z || 0);
+
+						this._fire( 'modified', [ [this], this, 'velocity' ] );
+
+					} else {
+
+						this.px = this.x - (vel || 0);
+						this.py = this.y - (arguments[1] || 0);
+						this.pz = this.z - (arguments[2] || 0);
+
+						this._fire( 'modified', [ [this], this, 'velocity' ] );
+					}
+				}
+
+				return {
+					x: this.x - this.px,
+					y: this.y - this.py,
+					z: this.z - this.pz
+				};	
 			}
 
 			,accelerate: function( accel ){

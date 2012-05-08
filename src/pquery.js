@@ -757,6 +757,30 @@ define(
 				// else return position of first
 				return first && first.position && first.position();
 			}
+
+			,velocity: function( vel ){
+
+				var first = this[0];
+				
+				if ( typeof pos === 'string' ){
+					
+					// TODO define styles of return value	
+				} else if ( arguments.length > 0 ) {
+
+					// set velocity for all
+					for ( var i = this.length - 1; i > -1; i-- ){
+
+						first = this[i];
+						first.velocity.apply( first, arguments );
+
+					}
+
+					return this;
+				}
+
+				// else return velocity of first
+				return first && first.velocity && first.velocity();
+			}
 		});
 
 		// checkers
