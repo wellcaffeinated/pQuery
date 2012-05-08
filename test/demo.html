@@ -31,6 +31,7 @@
 <body>
   
   <div id="wrapper">
+    <div id="info"></div>
 
     <canvas id="world" width="500" height="500"></canvas>
 
@@ -79,62 +80,16 @@
       //The Stage class abstracts away the Canvas element and
       //is the root level display container for display elements.
       stage = new Stage(canvas);
- 
-      //Create an EaselJS Graphics element to create the
-      //commands to draw a circle
-      var g = new Graphics();
+  
 
-      //stroke of 1 px
-      g.setStrokeStyle(1);
- 
-      //Set the stroke color, using the EaselJS 
-      //Graphics.getRGB static method.
-      //This creates a white color, with an alpha
-      //of .7
-      g.beginStroke(Graphics.getRGB(255,255,255,.7));
- 
-      //draw the circle
-      g.drawCircle(0,0, 10);
-
-      //note that the circle has not been drawn yet. 
-      //the Graphics instance just has the commands to
-      //draw the circle.
-      //It will be drawn when the stage needs to render it
-      //which is usually when we call stage.tick()
- 
-      //create a new Shape instance. This is a DisplayObject
-      //which can be added directly to the stage (and rendered).
-      //Pass in the Graphics instance that we created, and that
-      //we want the Shape to draw.
-      circle = new Shape(g);
- 
-      //set the initial x position, and the reset position
-      circle.x = canvas.width / 2;
- 
-      //set the y position
-      circle.y = canvas.height / 2;
- 
-      //add the circle to the stage.
-      stage.addChild(circle);
-
-      //center point
-      var center = new Graphics();
-      g.setStrokeStyle(1);
-      g.beginStroke(Graphics.getRGB(255,200,200,1));
-      g.drawCircle(0,0,5);
-      var cent = new Shape(center);
-      //set the initial x position, and the reset position
-      cent.x = canvas.width / 2;
- 
-      //set the y position
-      cent.y = canvas.height / 2;
-
-      stage.addChild(cent);
- 
-      //tell the stage to render to the canvas
-      stage.update();
-
-
+      //center
+      var c = new Shape();
+        c.x = canvas.width/2;
+        c.y = canvas.height/2;
+        c.graphics.beginFill(Graphics.getRGB(50,50,255,1));
+        c.graphics.drawCircle(0,0,5);
+        stage.addChild(c);
+      
       var world = pQuery('world').on('step', function(){
 
         world.find('sphere').each(function(){
@@ -158,29 +113,102 @@
 
       });
 
-      var Pcircle = pQuery('<sphere>').data('view', circle).appendTo( world );
-      Pcircle.position(100, 100);
-      Pcircle[0].px = 100-2;
-      Pcircle[0].py = 100;
+      function addCircle(x, y, r, vx, vy){
+
+        var c = new Shape();
+        c.x = x;
+        c.y = y;
+        c.graphics.beginFill(Graphics.getRGB(255,200,200,1));
+        c.graphics.drawCircle(0,0,r);
+        stage.addChild(c);
+
+        return pQuery( '<sphere>' )
+          .data( 'view', c )
+          .appendTo( world )
+          .position( x, y )
+          .velocity( vx, vy );
+      }
+
+      for(var i = 0; i < 40; i++){
+
+        addCircle( Math.random()*100, Math.random()*400, 10, Math.random(), 0 );
+      }
+
+      /*world.interact(function( delta, sph, idx, list ){
+
+        for(var i = idx+1, l = list.length; i < l; i++){
+          // newtonian gravity
+          var pos = sph.position()
+            ,other = list[i].position()
+            ,x = other.x - pos.x
+            ,y = other.y - pos.y
+            ,lensq = x*x + y*y
+            ,len = Math.sqrt(lensq)
+            ,g = 7/lensq
+            ;
+          
+          sph.accelerate(x=x*g/len, y=y*g/len);
+          list[i].accelerate(-x,-y);
+        }
+
+      }, 'sphere');*/
+
       world.interact(function( delta, sph ){
 
-        // newtonian gravity
-        var pos = sph.position()
-          ,x = cent.x - pos.x
-          ,y = cent.y - pos.y
-          ,lensq = x*x + y*y
-          ,len = Math.sqrt(lensq)
-          ,g = 7/lensq
-          ;
+        // earth gravity
+        sph.accelerate(0, 0.001);
 
-        
-        sph.accelerate(x*g/len, y*g/len);
+        // air friction
+        var v = sph.velocity()
+          l = 10000*Math.sqrt(v.x*v.x + v.y*v.y)
+          ;
+        //sph.accelerate(-v.x/l,-v.y/l)
 
       }, 'sphere');
 
+      world.interact('hard', function( delta, sph, idx, list ){
+
+        // boundary
+        sph.x = Math.min(Math.max(10, sph.x), 500-10);
+        sph.y = Math.min(Math.max(10, sph.y), 500-10);
+
+        if(sph.x === 10 || sph.x === 490 || sph.y === 0 || sph.y === 490){
+          // collision disipation
+          var v = sph.velocity()
+            f = 100*Math.sqrt(v.x*v.x + v.y*v.y)
+            ;
+          
+          sph.accelerate(-v.x/f,-v.y/f);
+        }
+
+        // each other
+        for(var i = idx+1, l = list.length; i < l; i++){
+
+          var other = list[i]
+            ,pos1 = sph.position()
+            ,pos2 = other.position()
+            ,x = pos2.x - pos1.x
+            ,y = pos2.y - pos1.y
+            ,len = Math.sqrt(x*x + y*y)
+            ,target = 20 // radius x 2
+            ;
+
+          if(len < target){ 
+            var factor = 0.5*(len-target)/len;
+            // move the spheres away from each other
+            // by half the conflicting length
+            other.position(pos2.x - x*factor, pos2.y - y*factor);
+            sph.position(pos1.x + x*factor, pos1.y + y*factor);
+          }
+        }
+      }, 'sphere');
+
+      var info = document.getElementById('info');
+
       pQuery.ticker.subscribe(function(time, delta){
 
-        world.step(40/4, time);
+        world.step(10, time);
+        //info.innerHTML = 'FPS: '+world[0].FPS+'<br/>steps: '+world[0].nsteps;
 
       });
 

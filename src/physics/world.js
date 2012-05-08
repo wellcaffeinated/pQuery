@@ -113,7 +113,7 @@ define(
 				}
 			}
 
-			,resolveInertia: function(){
+			,resolveInertia: function( delta ){
 
 				var children = this._childCache
 					,i = children.length - 1
@@ -121,7 +121,7 @@ define(
 
 				for (; i > -1; i--){
 
-					children[i].resolveInertia();
+					children[i].resolveInertia( delta );
 				}
 			}
 
@@ -137,9 +137,9 @@ define(
                 this.time += delta;
                 this.doInteractions( 'soft', delta );
                 this.resolveAcceleration( delta );
-                //this.doInteractions( 'hard', delta );
-                this.resolveInertia();
-                //this.doInteractions( 'collision', delta );
+                this.doInteractions( 'hard', delta );
+                this.resolveInertia( delta );
+				this.doInteractions( 'collision', delta );
                 //this.cleanup();
             }
 
@@ -148,6 +148,10 @@ define(
 				var time = this.time || (this.time = now)
 					,diff
 					;
+
+				diff = (now - this.time);
+				this.FPS = 1000/diff;
+				this.nsteps = Math.ceil(diff/timestep);
 
                 if ( now - time > 250 ){
 
