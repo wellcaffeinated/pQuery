@@ -145,6 +145,11 @@ define(
 
 			,step: function( timestep, now ){
 				
+				if ( this.paused ){
+
+					return this;
+				}
+
 				var time = this.time || (this.time = now)
 					,diff
 					;
@@ -179,6 +184,24 @@ define(
 
                 this._fire('step', [ timestep, now ]);
                 return this;
+            }
+
+            ,pause: function(){
+
+            	this.paused = true;
+            	this.time = false;
+            	return this;
+            }
+
+            ,unpause: function(){
+
+            	this.paused = false;
+            	return this;
+            }
+
+            ,isPaused: function(){
+
+            	return !!this.paused;
             }
 		});
 

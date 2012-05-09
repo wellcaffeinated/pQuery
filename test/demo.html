@@ -31,6 +31,7 @@
 <body>
   
   <div id="wrapper">
+    <button id="stopstart">Stop</button>
     <div id="info"></div>
 
     <canvas id="world" width="500" height="500"></canvas>
@@ -129,9 +130,9 @@
           .velocity( vx, vy );
       }
 
-      for(var i = 0, n = 10; i < n; i++){
+      for(var i = 0, n = 2; i < n; i++){
 
-        addCircle( i*25%465+10+5*Math.random(), Math.floor((i*30+10)/465)*25+10+5*Math.random(), 10, 0*Math.random(), 0 );
+        addCircle( i*25%465+10+5*Math.random(), Math.floor((i*30+10)/465)*25+10+5*Math.random(), 10, 10*(Math.random()-0.5), Math.random() );
       }
 
       world.interact(function( delta, sph, idx, list ){
@@ -231,6 +232,22 @@
       });
 
       pQuery.ticker.start();
+
+      var ss = document.getElementById('stopstart');
+      ss.addEventListener('click', function(){
+
+        if ( world.isPaused() ){
+
+          world.unpause();
+          ss.innerHTML = 'Start';        
+          return;
+        }
+
+        ss.innerHTML = 'Stop';
+        world.pause();
+
+      });
+
 
   	});
   </script>

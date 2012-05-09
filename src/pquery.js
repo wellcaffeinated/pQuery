@@ -586,6 +586,23 @@ define(
 				this.world.step( timestep, now );
 				return this;
 			}
+
+			,pause: function(){
+
+            	this.world.pause();
+            	return this;
+            }
+
+            ,unpause: function(){
+
+            	this.world.unpause();
+            	return this;
+            }
+
+            ,isPaused: function(){
+
+            	return this.world.isPaused();
+            }
 		});
 
 		// set up rootpQuery
