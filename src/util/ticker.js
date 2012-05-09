@@ -94,13 +94,19 @@ define(
 
 			return API;
 		}
+
+		function isActive(){
+
+			return !!active;
+		}
 		
 		// API
 		return API = {
 			start: start,
 			stop: stop,
 			subscribe: subscribe,
-			unsubscribe: unsubscribe
+			unsubscribe: unsubscribe,
+			isActive: isActive
 		};
 	}
 );

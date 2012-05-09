@@ -299,7 +299,7 @@ define(
 						;
 
 					deep = (narrow === true) || !!deep;
-					narrow = false;
+					narrow = (typeof narrow === 'boolean')? false : narrow;
 
 					// narrow can be a filter function( el, idx, parent ), simple selector string, or bool
 					if ( !narrow ){
