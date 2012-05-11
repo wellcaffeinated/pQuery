@@ -76,10 +76,6 @@
       bounds = new Rectangle();
       bounds.width = canvas.width;
       bounds.height = canvas.height;
-
-      //pass the canvas element to the EaselJS Stage instance
-      //The Stage class abstracts away the Canvas element and
-      //is the root level display container for display elements.
       stage = new Stage(canvas);
   
 
@@ -91,9 +87,10 @@
         c.graphics.drawCircle(0,0,5);
         stage.addChild(c);
       
-      var world = pQuery('world').on('step', function(){
+      // plugin to update position of views
+      pQuery.fn.updateView = function(){
 
-        world.find('sphere').each(function(){
+        return this.each(function(){
 
           var self = pQuery(this)
             ,view = self.data('view')
@@ -109,12 +106,11 @@
           }
 
         });
+      };
 
-        stage.update();
-
-      });
-
-      function addCircle(x, y, r, vx, vy){
+      var world = pQuery('world');
+      
+      function newCircle(x, y, r, vx, vy){
 
         var c = new Shape();
         c.x = x;
@@ -125,49 +121,51 @@
 
         return pQuery( '<sphere>' )
           .data( 'view', c )
-          .appendTo( world )
           .position( x, y )
           .velocity( vx, vy );
       }
 
+      var spheres = pQuery(null);
+
       for(var i = 0, n = 2; i < n; i++){
 
-        addCircle( i*25%465+10+5*Math.random(), Math.floor((i*30+10)/465)*25+10+5*Math.random(), 10, 10*(Math.random()-0.5), Math.random() );
+        spheres = spheres.add(newCircle( 
+          i*25%465+10+5*Math.random(), 
+          Math.floor((i*30+10)/465)*25+10+5*Math.random(), 
+          10, 
+          10*(Math.random()-0.5), 
+          Math.random()
+        ));
+
       }
 
-      world.interact(function( delta, sph, idx, list ){
+      spheres.appendTo(world);
 
-        for(var i = idx+1, l = list.length; i < l; i++){
-          // newtonian gravity
-          var pos = sph.position()
-            ,other = list[i].position()
-            ,x = other.x - pos.x
-            ,y = other.y - pos.y
-            ,lensq = x*x + y*y
-            ,len = Math.sqrt(lensq)
-            ,g = 1/(lensq*len)
-            ;
-          
-          sph.accelerate(x=x*g, y=y*g);
-          list[i].accelerate(-x,-y);
-        }
+      world.on('step', (function(){
 
-      }, 'sphere');
+        // cache spheres
+        var spheres = world.find('sphere');
 
-      /*world.interact(function( delta, sph ){
+        return function(){
+
+          spheres.updateView();
+
+          stage.update();
+        };
+      })());
+
+      spheres.interact( pQuery.interactions.NewtonianGravity( 2 ) );
+
+      /*world.interact('soft', 'sphere', function( delta, sph ){
 
         // earth gravity
         sph.accelerate(0, 0.001);
 
-        // air friction
-        var v = sph.velocity()
-          l = 10000*Math.sqrt(v.x*v.x + v.y*v.y)
-          ;
-        sph.accelerate(-v.x/l,-v.y/l)
+      });*/
 
-      }, 'sphere');*/
+      //spheres.interact( pQuery.interactions.Friction( .01 ) );
 
-      world.interact('hard', function( delta, sph, idx, list ){
+      world.interact('hard', 'sphere', function( delta, sph, idx, list ){
 
         // boundary
         sph.x = Math.min(Math.max(10, sph.x), 500-10);
@@ -220,7 +218,7 @@
             other.velocity(v.x/f,v.y/f);
           }
         }
-      }, 'sphere');
+      });
 
       var info = document.getElementById('info');
 

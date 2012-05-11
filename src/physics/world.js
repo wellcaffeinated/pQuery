@@ -59,12 +59,17 @@ define(
 						p.subscribe( 'children.modified', function( modified ){
 
 							// TODO inefficient. calls this on every child modified
-							intr.bodies = bodies();
+							intr.bodies = bodies( par );
 						});
 
-						intr.bodies = bodies();
+						intr.bodies = bodies( par );
+
+					} else {
+
+						intr.bodies = bodies;
 					}
 
+					intr.parent = par;
 					intr.callback = callback;
 
 					this._interactions[ type ].push( intr );
