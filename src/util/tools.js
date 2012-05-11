@@ -310,6 +310,22 @@ define(function(){
 					return proxy;
 				}
 
+				,unique: function( results ){
+
+					var i, j, l;
+
+					for ( i = 0, l = results.length; i < l; i++ ){
+						for ( j = i + 1; j < l; j++ ){
+							if ( results[ i ] === results[ j ] ){
+								results.splice( j--, 1 );
+								l--;
+							}
+						}
+					}
+
+					return results;
+				}
+
 			}
 			;
 

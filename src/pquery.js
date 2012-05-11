@@ -4,6 +4,7 @@ define(
 		'util/tools',
 		'util/callbacks',
 		'util/ticker',
+		'physics/algorithms',
 		'physics/world',
 		'physics/phyget'
 		
@@ -14,6 +15,7 @@ define(
 		Tools,
 		Callbacks,
 		Ticker,
+		Algorithms,
 		World,
 		Phyget
 		
@@ -159,7 +161,8 @@ define(
 				var ret = this.constructor();
 
 				if ( pQuery.isArray( elems ) ) {
-					push.apply( ret, elems );
+
+					this.push.apply( ret, elems );
 
 				} else {
 					pQuery.merge( ret, elems );
@@ -190,6 +193,8 @@ define(
 		pQuery.fn.extend = pQuery.extend = Tools.extend;
 
 		pQuery.extend( Tools );
+
+		pQuery.extend( Algorithms );
 
 		pQuery.Callbacks = Callbacks;
 
@@ -382,6 +387,34 @@ define(
 			return haystack.contains( needle );
 		};
 
+
+		function inWorld( body, world ){
+
+			var p = body.parents();
+			return (p[ p.length-1 ] === world);
+		}
+
+		// collection methods
+		pQuery.fn.extend({
+
+			toArray: function() {
+				return Array.prototype.slice.call( this, 0 );
+			}
+
+			// Get the Nth element in the matched body set OR
+			// Get the whole matched body set as a clean array
+			,get: function( num ) {
+				return num == null ?
+
+					// Return a 'clean' array
+					this.toArray() :
+
+					// Return just the object
+					( num < 0 ? this[ this.length + num ] : this[ num ] );
+			}
+
+		});
+
 		// tree manipulation and retrieval
 		pQuery.fn.extend({
 
@@ -431,6 +464,18 @@ define(
 				// TODO
 			}
 
+			,add: function( selector, context ) {
+				var set = typeof selector === 'string' ?
+						pQuery( selector, context ) :
+						pQuery.makeArray( selector && Phyget.isBody( selector ) ? [ selector ] : selector )
+					,all = pQuery.merge( this.get(), set )
+					;
+				
+				return this.pushStack( !inWorld( set[0], this.world ) || !inWorld( all[0], this.world ) ?
+					all :
+					pQuery.unique( all ) );
+			}
+
 			,append: function(){
 
 				return this.manip(arguments, function( body ){
@@ -473,20 +518,37 @@ define(
 		pQuery.fn.extend({
 			
 			// types: soft, hard, collision
-			interact: function( type, callback, sel ){
+			interact: function( types, sel, callback ){
 
 				var bodies
+					,type = types
 					;
 
-				if ( pQuery.isFunction( type ) ){
+				// ( types-object, sel )
+				if ( typeof types === 'object' ){
 
-					sel = callback;
-					callback = type;
+					for ( type in types ){
+						this.interact( type, sel, types[ type ] );
+					}
+					return this;
+				}
+
+				// ( callback )
+				if ( sel == null && callback == null ){
+
+					callback = types;
 					type = 'soft'; //assume soft interaction
 
-				} else if ( typeof type === 'object' ){
-					
-					
+				// ( types, callback )
+				} else if ( callback == null ){
+
+					callback = sel;
+					sel = undefined;
+					type = types;
+				}
+
+				if ( !callback ){
+
 					return this;
 				}
 
