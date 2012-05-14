@@ -30,23 +30,31 @@ define({
             };
         }
 
-        // TODO: fix
         ,Friction: function( strength ){
 
-            var v, f;
+            var p, l, x, y, z;
 
-            strength = Math.tan(strength*Math.PI/4);
+            // keep it between 1 and 0
+            strength = Math.max(Math.min(strength, 1), 0);
 
             return {
 
                 soft: function( delta, obj, idx, list ){
 
-                    v = obj.velocity();
-                    f = strength/Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
-                    
-                    // normalize to get direction
-                    // apply constant force in opposite direction
-                    obj.accelerate( -v.x*f, -v.y*f, -v.z*f );
+                    p = obj.position();
+
+                    x = p.x - p.px;
+                    y = p.y - p.py;
+                    z = p.z - p.pz;
+                    l = Math.sqrt(x*x+y*y+z*z);
+
+                    // move previous position closer to slow it down proportionally
+                    // to the strength
+                    p.px += strength*x/l;
+                    p.py += strength*y/l;
+                    p.pz += strength*z/l;
+
+                    obj.position( p );
                 }
             };
         }

@@ -127,7 +127,7 @@
 
       var spheres = pQuery(null);
 
-      for(var i = 0, n = 2; i < n; i++){
+      for(var i = 0, n = 50; i < n; i++){
 
         spheres = spheres.add(newCircle( 
           i*25%465+10+5*Math.random(), 
@@ -163,7 +163,7 @@
 
       });*/
 
-      //spheres.interact( pQuery.interactions.Friction( .01 ) );
+      spheres.interact( pQuery.interactions.Friction( 0.001 ) );
 
       world.interact('hard', 'sphere', function( delta, sph, idx, list ){
 
