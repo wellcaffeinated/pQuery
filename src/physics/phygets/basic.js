@@ -74,6 +74,7 @@ define(
 			,position: function( pos ){
 
 				var type
+					,prev = false
 					;
 
 				if ( arguments.length > 0 ){
@@ -85,6 +86,10 @@ define(
 						this.x = pos.x || this.x;
 						this.y = pos.y || this.y;
 						this.z = pos.z || this.z;
+
+						this.px = pos.px || this.px;
+						this.py = pos.py || this.py;
+						this.pz = pos.pz || this.pz;
 
 						this._fire( 'physics.modified', [ [this], this, 'position' ] );
 
@@ -101,7 +106,11 @@ define(
 				return {
 					x: this.x,
 					y: this.y,
-					z: this.z
+					z: this.z,
+					// include previous position
+					px: this.px,
+					py: this.py,
+					pz: this.pz
 				};
 			}
 
