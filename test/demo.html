@@ -121,13 +121,14 @@
 
         return pQuery( '<sphere>' )
           .data( 'view', c )
+          .dimensions( r, r, r )
           .position( x, y )
           .velocity( vx, vy );
       }
 
       var spheres = pQuery(null);
 
-      for(var i = 0, n = 50; i < n; i++){
+      for(var i = 0, n = 10; i < n; i++){
 
         spheres = spheres.add(newCircle( 
           i*25%465+10+5*Math.random(), 
@@ -163,61 +164,42 @@
 
       });*/
 
-      spheres.interact( pQuery.interactions.Friction( 0.001 ) );
+      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
 
-      world.interact('hard', 'sphere', function( delta, sph, idx, list ){
+      world
+        .dimensions( 500, 500 )
+        .interact( pQuery.interactions.ConstrainWithin( world, 0.5 ), 'sphere' )
+        .interact('hard', 'sphere', function( delta, sph, idx, list ){
 
-        // boundary
-        sph.x = Math.min(Math.max(10, sph.x), 500-10);
-        sph.y = Math.min(Math.max(10, sph.y), 500-10);
+          // each other
+          for(var i = idx+1, l = list.length; i < l; i++){
 
-        if(sph.x === 10 || sph.x === 490){
-          // collision disipation
-          var v = sph.velocity()
-            ,f=1.1
-            ;
-          
-          sph.velocity(v.x/f, v.y/f);
-        }
+            var other = list[i]
+              ,pos1 = sph.position()
+              ,pos2 = other.position()
+              ,x = pos2.x - pos1.x
+              ,y = pos2.y - pos1.y
+              ,len = Math.sqrt(x*x + y*y)
+              ,target = 20 // radius x 2
+              ;
 
-        if(sph.y === 0 || sph.y === 490){
-          var v = sph.velocity()
-            ,f=1.1
-            ;
-          
-          sph.velocity(v.x/f,v.y/f);
+            if(len < target){ 
+              var factor = 0.5*(len-target)/len;
+              // move the spheres away from each other
+              // by half the conflicting length
+              other.position(pos2.x - x*factor, pos2.y - y*factor);
+              sph.position(pos1.x + x*factor, pos1.y + y*factor);
 
-        }
+              var v = sph.velocity()
+              ,f=1.04
+              ;
+              
+              //sph.velocity(v.x/f,v.y/f);
 
-        // each other
-        for(var i = idx+1, l = list.length; i < l; i++){
-
-          var other = list[i]
-            ,pos1 = sph.position()
-            ,pos2 = other.position()
-            ,x = pos2.x - pos1.x
-            ,y = pos2.y - pos1.y
-            ,len = Math.sqrt(x*x + y*y)
-            ,target = 20 // radius x 2
-            ;
-
-          if(len < target){ 
-            var factor = 0.5*(len-target)/len;
-            // move the spheres away from each other
-            // by half the conflicting length
-            other.position(pos2.x - x*factor, pos2.y - y*factor);
-            sph.position(pos1.x + x*factor, pos1.y + y*factor);
-
-            var v = sph.velocity()
-            ,f=1.002
-            ;
-            
-            sph.velocity(v.x/f,v.y/f);
-
-            v = other.velocity();
-            other.velocity(v.x/f,v.y/f);
+              v = other.velocity();
+              //other.velocity(v.x/f,v.y/f);
+            }
           }
-        }
       });
 
       var info = document.getElementById('info');
