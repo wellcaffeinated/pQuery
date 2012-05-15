@@ -9,7 +9,7 @@ define(
 		Tools,
 		Callbacks
 	){
-
+		
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
 			,lastId = 0
 			,Body = Class({
@@ -28,6 +28,12 @@ define(
 					this._callbacks = {};
 					this._bubble = {};
 					this._data = {}; // arbitrary data storage
+
+					this._dimensions = {
+						w: 1,
+						h: 1,
+						d: 1
+					};
 
 					var evt
 						,self = this
@@ -75,6 +81,22 @@ define(
 				,requestUniqueId: function(){
 
 					return idSeed + (lastId++);
+				}
+
+				,dimensions: function( w, h, d ){
+
+					if ( arguments.length > 0 ){
+
+						this._dimensions.w = Tools.isNumericQuick( w )? w : this._dimensions.w;
+						this._dimensions.h = Tools.isNumericQuick( h )? h : this._dimensions.h;
+						this._dimensions.d = Tools.isNumericQuick( d )? d : this._dimensions.d;
+					}
+
+					return {
+						width: this._dimensions.w,
+						height: this._dimensions.h,
+						depth: this._dimensions.d
+					};
 				}
 
 				// get type
