@@ -9,7 +9,7 @@ define(
 		Tools,
 		Callbacks
 	){
-		
+
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
 			,lastId = 0
 			,Body = Class({
@@ -30,9 +30,9 @@ define(
 					this._data = {}; // arbitrary data storage
 
 					this._dimensions = {
-						w: 1,
-						h: 1,
-						d: 1
+						w: 0,
+						h: 0,
+						d: 0
 					};
 
 					var evt
