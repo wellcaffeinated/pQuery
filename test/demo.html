@@ -121,7 +121,7 @@
 
         return pQuery( '<sphere>' )
           .data( 'view', c )
-          .dimensions( r, r, r )
+          .dimensions( r, r )
           .position( x, y )
           .velocity( vx, vy );
       }
@@ -164,7 +164,7 @@
 
       });*/
 
-      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+      //spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
 
       world
         .dimensions( 500, 500 )

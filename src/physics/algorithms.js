@@ -118,7 +118,7 @@ define(
                         fric = function( delta, obj ){
                             var v = obj.velocity()
                                 ;
-                              
+                            
                             obj.velocity(v.x/energyLoss, v.y/energyLoss, v.z/energyLoss);
                         };
                         
