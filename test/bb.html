@@ -51,12 +51,12 @@
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
   
-  <script src="../lib/require.js"></script>
+  <script src="../build/pquery-built/pquery.js"></script>
   <script>
-  	require.config({
+  	/*require.config({
   		baseUrl: '../src/'
-  	});
-  	require(['pquery'], function(pQuery){
+  	});*/
+  	//require.ensure(['pquery'], function(pQuery){
      
       // plugin to update position of views
       pQuery.fn.updateView = function(){
@@ -213,7 +213,7 @@
       });
 
 
-  	});
+  	//});
   </script>
   <!-- end scripts -->
 
