@@ -589,20 +589,6 @@ define(
 				// TODO
 			}
 
-			,dimensions: function(){
-
-				var dims = arguments[0]
-					,type = pQuery.type(dims)
-					;
-
-				if ( type === 'object' ){
-
-					return this.width( dims.width ).height( dims.height ).depth( dims.depth );
-				}
-
-				// TODO
-			}
-
 			,accelerate: function( accel ){
 
 				var ch = this[0]
@@ -859,6 +845,40 @@ define(
 
 				// else return velocity of first
 				return first && first.velocity && first.velocity();
+			}
+
+			,dimensions: function( dims ){
+
+				var type = typeof dims
+					,first = this[0]
+					;
+
+				if ( type === 'object' ){
+
+					for ( var i = 0, l = this.length; i < l; ++i ){
+
+						this[ i ].dimensions( dims.width, dims.height, dims.depth );
+					}
+
+					return this;
+
+				} else if ( pQuery.isNumeric( dims ) ){
+
+					dims = {
+						width: dims,
+						height: arguments[1],
+						depth: arguments[2]
+					};
+
+					for ( var i = 0, l = this.length; i < l; ++i ){
+						
+						this[ i ].dimensions( dims.width, dims.height, dims.depth );
+					}
+						
+					return this;
+				}
+
+				return first.dimensions();
 			}
 		});
 
