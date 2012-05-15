@@ -39,6 +39,7 @@
   
   <div id="wrapper">
     <button id="stopstart">Stop</button>
+    <button id="restart">Restart</button>
     <div id="info"></div>
 
     <div id="world">
@@ -186,13 +187,30 @@
         if ( world.isPaused() ){
 
           world.unpause();
-          ss.innerHTML = 'Start';        
+          ss.html('Stop');        
           return;
         }
 
-        ss.innerHTML = 'Stop';
+        ss.html('Start');
         world.pause();
 
+      });
+
+      var restart = false;
+      world.on('step', function(){
+
+        if( restart ){
+          pQuery('.basketball')
+            .position(250+(Math.random()-0.5)*50, 100)
+            .velocity(0, 0);
+
+          restart = false;
+        }
+      })
+
+      $('#restart').on('click', function(){
+
+        restart = true;
       });
 
 
