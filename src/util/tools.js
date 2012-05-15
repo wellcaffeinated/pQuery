@@ -124,6 +124,10 @@ define(function(){
 					return !isNaN( parseFloat(obj) ) && isFinite( obj );
 				}
 
+				,isNumericQuick: function( obj ){
+					return obj == 0 || 1%(obj) >= 0;
+				}
+
 				,type: function( obj ) {
 					return obj == null ?
 						String( obj ) :
