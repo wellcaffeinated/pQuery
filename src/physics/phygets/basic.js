@@ -1,13 +1,15 @@
 define(
 	[
 		'util/class',
+		'util/tools',
 		'physics/body'
 	],
 	function(
 		Class,
+		Tools,
 		Body
 	){
-
+		
 		var Basic = Class({
 				
 			_type: 'basic'
@@ -83,23 +85,23 @@ define(
 
 					if ( type === 'object' ){
 
-						this.x = pos.x || this.x;
-						this.y = pos.y || this.y;
-						this.z = pos.z || this.z;
+						this.x = Tools.isNumericQuick( pos.x )? pos.x : this.x;
+						this.y = Tools.isNumericQuick( pos.y )? pos.y : this.y;
+						this.z = Tools.isNumericQuick( pos.z )? pos.z : this.z;
 
-						this.px = pos.px || this.px;
-						this.py = pos.py || this.py;
-						this.pz = pos.pz || this.pz;
+						this.px = Tools.isNumericQuick( pos.px )? pos.px : this.px;
+						this.py = Tools.isNumericQuick( pos.py )? pos.py : this.py;
+						this.pz = Tools.isNumericQuick( pos.pz )? pos.pz : this.pz;
 
-						this._fire( 'physics.modified', [ [this], this, 'position' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'position' ] );
 
 					} else {
 
-						this.x = pos || this.x;
-						this.y = arguments[1] || this.y;
-						this.z = arguments[2] || this.z;
+						this.x = Tools.isNumericQuick( pos )? pos : this.x;
+						this.y = Tools.isNumericQuick( arguments[1] )? arguments[1] : this.y;
+						this.z = Tools.isNumericQuick( arguments[2] )? arguments[2] : this.z;
 
-						this._fire( 'physics.modified', [ [this], this, 'position' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'position' ] );
 					}
 				}
 
@@ -125,19 +127,19 @@ define(
 
 					if ( type === 'object' ){
 
-						this.px = this.x - (vel.x || 0);
-						this.py = this.y - (vel.y || 0);
-						this.pz = this.z - (vel.z || 0);
+						this.px = this.x - (Tools.isNumericQuick( vel.x )? vel.x : 0);
+						this.py = this.y - (Tools.isNumericQuick( vel.y )? vel.y : 0);
+						this.pz = this.z - (Tools.isNumericQuick( vel.z )? vel.z : 0);
 
-						this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
 
 					} else {
 
-						this.px = this.x - (vel || 0);
-						this.py = this.y - (arguments[1] || 0);
-						this.pz = this.z - (arguments[2] || 0);
+						this.px = this.x - (Tools.isNumericQuick( vel )? vel : 0);
+						this.py = this.y - (Tools.isNumericQuick( arguments[1] )? arguments[1] : 0);
+						this.pz = this.z - (Tools.isNumericQuick( arguments[2] )? arguments[2] : 0);
 
-						this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
 					}
 				}
 
@@ -159,19 +161,19 @@ define(
 
 					if ( type === 'object' ){
 
-						accel.x && this.ax += accel.x;
-						accel.y && this.ay += accel.y;
-						accel.z && this.az += accel.z;
+						Tools.isNumericQuick( accel.x ) && this.ax += accel.x;
+						Tools.isNumericQuick( accel.y ) && this.ay += accel.y;
+						Tools.isNumericQuick( accel.z ) && this.az += accel.z;
 
-						this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 
 					} else {
 
-						if ( accel ) this.ax += accel;
-						if ( arguments[1] ) this.ay += arguments[1]
-						if ( arguments[2] ) this.az += arguments[2]
+						if ( Tools.isNumericQuick( accel ) ) this.ax += accel;
+						if ( Tools.isNumericQuick( arguments[1] ) ) this.ay += arguments[1]
+						if ( Tools.isNumericQuick( arguments[2] ) ) this.az += arguments[2]
 
-						this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
+						//this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 					}
 				}
 
