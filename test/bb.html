@@ -1,0 +1,204 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <!-- Use the .htaccess and remove these lines to avoid edge case issues.
+       More info: h5bp.com/i/378 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>pQuery Test</title>
+  <meta name="description" content="">
+
+  <style>
+    #wrapper {
+      margin: 2em auto;
+      width: 500px;
+    }
+    #world {
+      background: #333;
+      width: 500px;
+      height: 500px;
+      position: relative;
+    }
+    .body {
+      position: absolute;
+      background: red;
+    }
+  </style>
+
+  <!-- Mobile viewport optimized: h5bp.com/viewport -->
+  <meta name="viewport" content="width=device-width">
+  <script src="easeljs-0.4.2.min.js"></script>
+</head>
+<body>
+  
+  <div id="wrapper">
+    <button id="stopstart">Stop</button>
+    <div id="info"></div>
+
+    <div id="world">
+    </div>
+
+  </div>
+
+  <!-- JavaScript at the bottom for fast page loading: http://developer.yahoo.com/performance/rules.html#js_bottom -->
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  
+  <script src="../lib/require.js"></script>
+  <script>
+  	require.config({
+  		baseUrl: '../src/'
+  	});
+  	require(['pquery'], function(pQuery){
+     
+      // plugin to update position of views
+      pQuery.fn.updateView = function(){
+
+        return this.each(function(){
+
+          var self = pQuery(this)
+            ,view = self.data('view')
+            ,pos
+            ,dim
+            ;
+
+          if (view){
+
+            pos = self.position();
+            dim = self.dimensions();
+            view.css({
+
+              top: pos.y - dim.height/2,
+              left: pos.x - dim.width/2
+            });
+            
+          }
+
+        });
+      };
+
+      var world = pQuery('world');
+      
+      function newCircle(x, y, r, vx, vy){
+
+        var c = $('<div class="body">').css({
+          width: r,
+          height: r,
+          'border-radius': r
+        }).appendTo('#world');
+
+        return pQuery( '<sphere>' )
+          .data( 'view', c )
+          .dimensions( r, r )
+          .position( x, y )
+          .velocity( vx, vy );
+      }
+
+      // create two boundaries
+      var spheres = newCircle(230, 200, 4, 0, 0);
+      var bounds;
+      bounds = spheres = spheres.add(newCircle(270, 200, 4, 0, 0));
+      spheres = spheres.add(
+        //create a basketball
+        newCircle(250+(Math.random()-0.5)*50, 100, 24, 0, 0)
+          .addClass('basketball')
+      );
+      spheres.appendTo(world);
+
+
+
+      world.on('step', (function(){
+
+        // cache spheres
+        var spheres = world.find('sphere');
+
+        return function(){
+
+          spheres.updateView();
+
+        };
+      })());
+
+      //spheres.interact( pQuery.interactions.NewtonianGravity( 2 ) );
+
+      world.interact('soft', '.basketball', function( delta, sph ){
+
+        // earth gravity
+        sph.accelerate(0, 0.0005);
+
+      });
+
+      //spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+
+      world
+        .dimensions( 500, 500 )
+        .interact( pQuery.interactions.ConstrainWithin( world, 0.5 ), '.basketball' )
+        .interact('hard', '.basketball', function( delta, sph, idx, list ){
+
+          // each other
+          for(var i = 0, l = bounds.length; i < l; i++){
+
+            var other = bounds[i]
+              ,pos1 = sph.position()
+              ,pos2 = other.position()
+              ,x = pos2.x - pos1.x
+              ,y = pos2.y - pos1.y
+              ,len = Math.sqrt(x*x + y*y)
+              ,target = (sph.dimensions().width/2 + other.dimensions().width/2) // radius of both
+              ;
+
+            if(len < target){ 
+              var factor = (len-target)/len;
+              // move the sphere away from bounds
+              sph.position(pos1.x + x*factor, pos1.y + y*factor);
+
+              var v = sph.velocity()
+              ,f=1.04
+              ;
+              
+              // damping
+              sph.velocity(v.x/f,v.y/f);
+            }
+          }
+      });
+
+      var info = document.getElementById('info');
+
+      pQuery.ticker.subscribe(function(time, delta){
+
+        world.step(5, time);
+        info.innerHTML = 'FPS: '+world[0].FPS+'<br/>steps: '+world[0].nsteps;
+
+      });
+
+      pQuery.ticker.start();
+
+      var ss = document.getElementById('stopstart');
+      ss.addEventListener('click', function(){
+
+        if ( world.isPaused() ){
+
+          world.unpause();
+          ss.innerHTML = 'Start';        
+          return;
+        }
+
+        ss.innerHTML = 'Stop';
+        world.pause();
+
+      });
+
+
+  	});
+  </script>
+  <!-- end scripts -->
+
+</body>
+</html>
