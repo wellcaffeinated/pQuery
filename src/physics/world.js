@@ -36,6 +36,13 @@ define(
 
 					self._refreshChildren = true;
 				});
+
+				// start with infinite dimensions
+				this._dimensions = {
+					w: 1/0,
+					h: 1/0,
+					d: 1/0
+				};
 			}
 
 			,__extends__: Body
@@ -83,6 +90,7 @@ define(
 				var list = this._interactions[ type ]
 					,intr
 					,bodies
+					,par
 					,ch
 					,i
 					,l
@@ -96,10 +104,11 @@ define(
 					
 					intr = list[ i ];
 					bodies = intr.bodies;
+					par = intr.parent;
 
 					for ( j = 0, m = bodies.length; j < m; ++j ){
 
-						intr.callback.call((ch = bodies[ j ]), delta, ch, j, bodies );
+						intr.callback.call((ch = bodies[ j ]), delta, ch, j, bodies, par );
 					}
 				}
 
