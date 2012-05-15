@@ -33,12 +33,20 @@
 
   <!-- Mobile viewport optimized: h5bp.com/viewport -->
   <meta name="viewport" content="width=device-width">
+<<<<<<< HEAD
   <script src="easeljs-0.4.2.min.js"></script>
+=======
+  
+>>>>>>> gh-pages
 </head>
 <body>
   
   <div id="wrapper">
     <button id="stopstart">Stop</button>
+<<<<<<< HEAD
+=======
+    <button id="restart">Restart</button>
+>>>>>>> gh-pages
     <div id="info"></div>
 
     <div id="world">
@@ -180,21 +188,54 @@
 
       pQuery.ticker.start();
 
+<<<<<<< HEAD
       var ss = document.getElementById('stopstart');
       ss.addEventListener('click', function(){
+=======
+      var ss = $('#stopstart');
+      ss.on('click', function(){
+>>>>>>> gh-pages
 
         if ( world.isPaused() ){
 
           world.unpause();
+<<<<<<< HEAD
           ss.innerHTML = 'Start';        
           return;
         }
 
         ss.innerHTML = 'Stop';
+=======
+          ss.html('Stop');        
+          return;
+        }
+
+        ss.html('Start');
+>>>>>>> gh-pages
         world.pause();
 
       });
 
+<<<<<<< HEAD
+=======
+      var restart = false;
+      world.on('step', function(){
+
+        if( restart ){
+          pQuery('.basketball')
+            .position(250+(Math.random()-0.5)*50, 100)
+            .velocity(0, 0);
+
+          restart = false;
+        }
+      })
+
+      $('#restart').on('click', function(){
+
+        restart = true;
+      });
+
+>>>>>>> gh-pages
 
   	});
   </script>

@@ -161,9 +161,15 @@ define(
 
 					if ( type === 'object' ){
 
+<<<<<<< HEAD
 						Tools.isNumericQuick( accel.x ) && this.ax += accel.x;
 						Tools.isNumericQuick( accel.y ) && this.ay += accel.y;
 						Tools.isNumericQuick( accel.z ) && this.az += accel.z;
+=======
+						if ( Tools.isNumericQuick( accel.x ) ) this.ax += accel.x;
+						if ( Tools.isNumericQuick( accel.y ) ) this.ay += accel.y;
+						if ( Tools.isNumericQuick( accel.z ) ) this.az += accel.z;
+>>>>>>> gh-pages
 
 						//this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 
