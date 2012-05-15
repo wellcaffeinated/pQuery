@@ -180,8 +180,8 @@
 
       pQuery.ticker.start();
 
-      var ss = document.getElementById('stopstart');
-      ss.addEventListener('click', function(){
+      var ss = $('#stopstart');
+      ss.on('click', function(){
 
         if ( world.isPaused() ){
 
