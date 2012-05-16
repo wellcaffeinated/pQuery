@@ -121,14 +121,14 @@
 
         return pQuery( '<sphere>' )
           .data( 'view', c )
-          .dimensions( r, r )
+          .dimensions( r*2, r*2 )
           .position( x, y )
           .velocity( vx, vy );
       }
 
       var spheres = pQuery(null);
 
-      for(var i = 0, n = 10; i < n; i++){
+      for(var i = 0, n = 40; i < n; i++){
 
         spheres = spheres.add(newCircle( 
           i*25%465+10+5*Math.random(), 
@@ -164,7 +164,7 @@
 
       });*/
 
-      //spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
 
       world
         .dimensions( 500, 500 )

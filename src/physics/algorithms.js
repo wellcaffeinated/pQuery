@@ -134,21 +134,21 @@ define(
                             pos = obj.position();
                             whd = obj.dimensions();
 
-                            pos.x = pos.x > (upper = max.x - whd.width) ? 
+                            pos.x = pos.x > (upper = max.x - whd.width/2) ? 
                                 (count++) && upper : 
-                                (lower = min.x + whd.width) > pos.x ? 
+                                (lower = min.x + whd.width/2) > pos.x ? 
                                     (count++) && lower : 
                                     pos.x;
 
-                            pos.y = pos.y > (upper = max.y - whd.height) ? 
+                            pos.y = pos.y > (upper = max.y - whd.height/2) ? 
                                 (count++) && upper : 
-                                (lower = min.y + whd.height) > pos.y ? 
+                                (lower = min.y + whd.height/2) > pos.y ? 
                                     (count++) && lower : 
                                     pos.y;
 
-                            pos.z = pos.z > (upper = max.z - whd.depth) ? 
+                            pos.z = pos.z > (upper = max.z - whd.depth/2) ? 
                                 (count++) && upper : 
-                                (lower = min.z + whd.depth) > pos.z ? 
+                                (lower = min.z + whd.depth/2) > pos.z ? 
                                     (count++) && lower : 
                                     pos.z;
 
