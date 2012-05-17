@@ -53,12 +53,31 @@
   
   <script src="../build/pquery-built/pquery.js"></script>
   <script>
-  	/*require.config({
-  		baseUrl: '../src/'
-  	});*/
-  	//require.ensure(['pquery'], function(pQuery){
-     
-      // plugin to update position of views
+
+      var initialZ = 30
+        ,distToBasket = 40 //make this bigger than initialZ
+        ,earthGravity = 0.0005
+        ,playerY = 300 // dist of player from top
+        ,basketY = 200 // dist of basket from top
+        ;
+
+      // calculate initial velocity needed to hit basket
+      function getInitialVelocity(){
+
+        var vy = -2 // adjust this if needed
+          , t = (Math.sqrt(vy*vy-2*earthGravity*(playerY-basketY)) - vy)/(earthGravity)
+          , vz = -initialZ/t
+          ;
+
+        return {
+          x: 0,
+          y: vy,
+          z: vz
+        };
+
+      }
+console.log(getInitialVelocity())
+  	  // plugin to update position of views
       pQuery.fn.updateView = function(){
 
         return this.each(function(){
@@ -67,16 +86,24 @@
             ,view = self.data('view')
             ,pos
             ,dim
+            ,r
+            ,persp
             ;
 
           if (view){
 
             pos = self.position();
             dim = self.dimensions();
+
+            r = dim.width/2;
+            persp = 2*r*distToBasket/(distToBasket-pos.z);
+
             view.css({
 
-              top: pos.y - dim.height/2,
-              left: pos.x - dim.width/2
+              top: pos.y - r,
+              left: pos.x - r,
+              width: persp,
+              height: persp
             });
             
           }
@@ -102,17 +129,19 @@
       }
 
       // create two boundaries
-      var spheres = newCircle(230, 200, 4, 0, 0);
+      var spheres = newCircle(230, basketY, 4, 0, 0);
       var bounds;
-      bounds = spheres = spheres.add(newCircle(270, 200, 4, 0, 0));
+      
+      bounds = spheres = spheres.add(newCircle(270, basketY, 4, 0, 0));
       spheres = spheres.add(
         //create a basketball
-        newCircle(250+(Math.random()-0.5)*50, 100, 24, 0, 0)
+        newCircle(250+(Math.random()-0.5)*50, playerY, 24, 0, 0)
           .addClass('basketball')
+          .position({ z: initialZ })
+          .velocity( getInitialVelocity() )
       );
+
       spheres.appendTo(world);
-
-
 
       world.on('step', (function(){
 
@@ -131,7 +160,7 @@
       world.interact('soft', '.basketball', function( delta, sph ){
 
         // earth gravity
-        sph.accelerate(0, 0.0005);
+        sph.accelerate(0, earthGravity);
 
       });
 
@@ -142,6 +171,8 @@
         .interact( pQuery.interactions.ConstrainWithin( world, 0.5 ), '.basketball' )
         .interact('hard', '.basketball', function( delta, sph, idx, list ){
 
+          var p = sph.position();
+          
           // each other
           for(var i = 0, l = bounds.length; i < l; i++){
 
@@ -154,6 +185,18 @@
               ,target = (sph.dimensions().width/2 + other.dimensions().width/2) // radius of both
               ;
 
+            if ( pos1.z <= 0 ){
+
+              // if sphere reaches basket, stop it from bouncing back
+              sph.velocity({z:0});
+
+            } else if ( pos1.z > initialZ/2 ){
+
+              // only collide if past midpoint
+              return;
+            }
+
+            // collide
             if(len < target){ 
               var factor = (len-target)/len;
               // move the sphere away from bounds
@@ -200,8 +243,8 @@
 
         if( restart ){
           pQuery('.basketball')
-            .position(250+(Math.random()-0.5)*50, 100)
-            .velocity(0, 0);
+            .position(250+(Math.random()-0.5)*50, playerY, initialZ)
+            .velocity( getInitialVelocity() );
 
           restart = false;
         }
@@ -211,9 +254,6 @@
 
         restart = true;
       });
-
-
-  	//});
   </script>
   <!-- end scripts -->
 

@@ -1,14 +1,14 @@
 define(
     [
-        'util/tools'
+        './tools'
     ],
     function(
         Tools
     ){
 
-        function Class( obj ){
+        function Class( obj, name ){
 
-            var constructor = obj.__constructor__ || Tools.noop;
+            var constructor = name? obj[name] : obj.__constructor__ || Tools.noop;
 
             if(obj.__extends__){
 

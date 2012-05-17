@@ -1,8 +1,8 @@
 define(
 	[
-		'physics/body',
-		'physics/phygets/sphere',
-		'physics/phygets/point'
+		'./body',
+		'./phygets/sphere',
+		'./phygets/point'
 	],
 	function(
 	    Body,

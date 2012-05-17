@@ -1,7 +1,7 @@
 define(
 	[
-		'util/class',
-		'physics/phygets/basic'
+		'../../util/class',
+		'./basic'
 	],
 	function(
 		Class,
@@ -12,14 +12,14 @@ define(
 				
 			_type: 'sphere'
 			
-			,__constructor__: function(){
+			,Sphere: function(){
 
 				Sphere.prototype.__extends__.call( this );
 			}
 
 			,__extends__: Basic
 
-		});
+		}, 'Sphere');
 
 		return Sphere;
 	}

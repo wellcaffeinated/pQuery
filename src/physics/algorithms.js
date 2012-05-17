@@ -1,6 +1,6 @@
 define(
     [
-        'util/tools'
+        '../util/tools'
     ],
     function(
         Tools

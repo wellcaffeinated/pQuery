@@ -1,7 +1,7 @@
 define(
 	[
-		'util/class',
-		'physics/phygets/basic'
+		'../../util/class',
+		'./basic'
 	],
 	function(
 		Class,
@@ -12,14 +12,14 @@ define(
 				
 			_type: 'point'
 			
-			,__constructor__: function(){
+			,Point: function(){
 
 				Point.prototype.__extends__.call( this );
 			}
 
 			,__extends__: Basic
 
-		});
+		}, 'Point');
 
 		return Point;
 	}

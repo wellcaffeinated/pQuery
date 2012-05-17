@@ -1,8 +1,8 @@
 define(
 	[
-		'util/class',
-		'util/tools',
-		'physics/body'
+		'../../util/class',
+		'../../util/tools',
+		'../body'
 	],
 	function(
 		Class,
@@ -16,7 +16,7 @@ define(
 
 			,_events: Body.prototype._events.concat(['physics.modified'])
 			
-			,__constructor__: function(){
+			,Basic: function(){
 
 				this.x = this.y = this.z = 0;
 				this.midx = this.midy = this.midz = 0;
@@ -180,7 +180,7 @@ define(
 				return this;
 			}
 
-		});
+		}, 'Basic');
 
 		return Basic;
 	}

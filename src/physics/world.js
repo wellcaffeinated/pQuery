@@ -1,8 +1,8 @@
 define(
 	[
-		'util/tools',
-		'util/class',
-		'physics/body'
+		'../util/tools',
+		'../util/class',
+		'./body'
 	],
 	function(
 		Tools,
@@ -16,7 +16,7 @@ define(
 
 			,_events: Body.prototype._events.concat(['step'])
 			
-			,__constructor__: function(){
+			,World: function(){
 
 				var self = this;
 
@@ -217,7 +217,8 @@ define(
 
             	return !!this.paused;
             }
-		});
+
+		}, 'World');
 
 		World.isWorld = function( w ){
 

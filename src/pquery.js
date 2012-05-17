@@ -1,14 +1,12 @@
 define(
 	[
-		'util/slick.parser',
-		'util/tools',
-		'util/callbacks',
-		'util/ticker',
-		'physics/algorithms',
-		'physics/world',
-		'physics/phyget'
-		
-		//'timer'
+		'./util/slick.parser',
+		'./util/tools',
+		'./util/callbacks',
+		'./util/ticker',
+		'./physics/algorithms',
+		'./physics/world',
+		'./physics/phyget'
 	],
 	function(
 		Slick,
@@ -18,8 +16,6 @@ define(
 		Algorithms,
 		World,
 		Phyget
-		
-		//timer,
 	){
 		var pQuery = function( selector, context ){
 

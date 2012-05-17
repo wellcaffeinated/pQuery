@@ -1,6 +1,6 @@
 define(
 	[
-		'util/request-anim-frame'
+		'./request-anim-frame'
 	],
 	function(
 		frame

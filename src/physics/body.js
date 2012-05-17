@@ -1,8 +1,8 @@
 define(
 	[
-		'util/class',
-		'util/tools',
-		'util/callbacks'
+		'../util/class',
+		'../util/tools',
+		'../util/callbacks'
 	],
 	function(
 		Class,
@@ -18,7 +18,7 @@ define(
 
 				,_events: ['modified', 'children.modified']
 				
-				,__constructor__: function( id ){
+				,Body: function( id ){
 
 					this._id = id || null;
 					this._classes = [];
@@ -428,7 +428,7 @@ define(
 					return val? (this._data[ hash ] = val) : this._data[ hash ];
 				}
 
-			})
+			}, 'Body')
 			;
 
 		Body.isBody = function( b ){
