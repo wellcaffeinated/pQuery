@@ -2,12 +2,14 @@ define(
 	[
 		'../util/class',
 		'../util/tools',
-		'../util/callbacks'
+		'../util/callbacks',
+		'../math/vector'
 	],
 	function(
 		Class,
 		Tools,
-		Callbacks
+		Callbacks,
+		Vector
 	){
 
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
@@ -20,20 +22,19 @@ define(
 				
 				,Body: function( id ){
 
-					this._id = id || null;
-					this._classes = [];
-					this._oldclasses = this._classes;
-					this._parent = null;
-					this._children = {};
-					this._callbacks = {};
-					this._bubble = {};
-					this._data = {}; // arbitrary data storage
+					// storage for privates (aka boxer shorts)
+					var _ = this._ = {};
 
-					this._dimensions = {
-						w: 0,
-						h: 0,
-						d: 0
-					};
+					_.id = id || null;
+					_.classes = [];
+					_.oldclasses = this._classes;
+					_.parent = null;
+					_.children = {};
+					_.callbacks = {};
+					_.bubble = {};
+					_.data = {}; // arbitrary data storage
+
+					_.dimensions = new Vector();
 
 					var evt
 						,self = this
@@ -45,24 +46,24 @@ define(
 
 						!function(cb){
 
-							self._bubble[ evt ] = function(){
+							_.bubble[ evt ] = function(){
 								
-								cb.fire.apply(cb, arguments );
+								cb.fire.apply( cb, arguments );
 							};
 
-						}(this._callbacks[ evt ] = Callbacks());
+						}(_.callbacks[ evt ] = Callbacks());
 					}
 				}
 
 				,_fire: function( evt, args ){
 					
-					this._callbacks[ evt ].fire( args );
+					this._.callbacks[ evt ].fire( args );
 					return this;
 				}
 
 				,subscribe: function( evt, callback ){
 
-					var cb = this._callbacks[ evt ];
+					var cb = this._.callbacks[ evt ];
 
 					if (cb) cb.add( callback );
 
@@ -71,7 +72,7 @@ define(
 
 				,unsubscribe: function( evt, callback ){
 
-					var cb = this._callbacks[ evt ];
+					var cb = this._.callbacks[ evt ];
 					
 					if (cb) cb.remove( callback );
 
@@ -83,20 +84,20 @@ define(
 					return idSeed + (lastId++);
 				}
 
-				,dimensions: function( w, h, d ){
+				,dimensions: function( x, y, z ){
+
+					var d = this._.dimensions;
 
 					if ( arguments.length > 0 ){
 
-						this._dimensions.w = Tools.isNumericQuick( w )? w : this._dimensions.w;
-						this._dimensions.h = Tools.isNumericQuick( h )? h : this._dimensions.h;
-						this._dimensions.d = Tools.isNumericQuick( d )? d : this._dimensions.d;
+						d.set(
+							( x !== undefined )? x : d.x,
+							( y !== undefined )? y : d.y,
+							( z !== undefined )? z : d.z
+						);
 					}
 
-					return {
-						width: this._dimensions.w,
-						height: this._dimensions.h,
-						depth: this._dimensions.d
-					};
+					return d.toNative();
 				}
 
 				// get type
@@ -108,7 +109,9 @@ define(
 				// get or set id
 				,id: function( val ) {
 					
-					var par = this.parent();
+					var _ = this._
+						,par = this.parent()
+						;
 
 					if ( val && typeof val === 'string'){
 
@@ -116,31 +119,33 @@ define(
 						if (par){
 
 							par.remove( this );
-							this._id = val;
+							_.id = val;
 							par.add( this );
-							return this._id;
+							return _.id;
 						}
 
-						if ( this._id !== val ){
+						if ( _.id !== val ){
 
 							// announce changed ( modifiedArray, origin, prop )
 							this._fire( 'modified', [ [this], this, 'id' ] );
 						}
 
-						return this._id = val;
+						return _.id = val;
 					}
 
-					return this._id || (par? (this._id = par.requestUniqueId()) : null);
+					return _.id || (par? (_.id = par.requestUniqueId()) : null);
 				}
 
 				,addClass: function( str ){
 
-					var oldlen = this._classes.length;
+					var _ = this._
+						,oldlen = _.classes.length
+						;
 
 					this.removeClass( str );
-				    this._classes.push.apply( this._classes, str.split(' ') );
+				    _.classes.push.apply( _.classes, str.split(' ') );
 
-				    if ( this._classes.length !== oldlen ){
+				    if ( _.classes.length !== oldlen ){
 
 				    	// announce changed ( modifiedArray, origin, prop )
 						this._fire( 'modified', [ [this], this, 'classes' ] );
@@ -151,10 +156,11 @@ define(
 
 				,removeClass: function( str ){
 
-					var cls = str.split(' ')
-						,classes = this._classes
+					var _ = this._
+						,cls = str.split(' ')
+						,classes = _.classes
 						,idx
-						,oldlen = this._classes.length
+						,oldlen = _.classes.length
 						;
 
 				    for (var i = 0, l = cls.length; i < l; ++i){
@@ -163,7 +169,7 @@ define(
 							classes.splice( idx, 1 );
 				   	}
 
-				   	if ( this._classes.length !== oldlen ){
+				   	if ( _.classes.length !== oldlen ){
 
 				   		// announce changed ( modifiedArray, origin, prop )
 						this._fire( 'modified', [ [this], this, 'classes' ] );
@@ -195,18 +201,19 @@ define(
 					// toggle all classes in this case
 					} else if ( type === "undefined" || type === "boolean" ) {
 
-						var l
-							,old = this._classes
+						var _ = this._
+							,l
+							,old = _.classes
 							;
 
-						if ( l = this._classes.length ){
+						if ( l = _.classes.length ){
 
-							this._oldclasses = this._classes;
+							_.oldclasses = _.classes;
 						}
 
-						this._classes = (l && str !== true) || str === false ? [] : this._oldclasses || [];
+						_.classes = (l && str !== true) || str === false ? [] : _.oldclasses || [];
 
-						if ( old !== this._classes ){
+						if ( old !== _.classes ){
 
 							// announce changed ( modifiedArray, origin, prop )
 							this._fire( 'modified', [ [this], this, 'classes' ] );
@@ -223,7 +230,7 @@ define(
 						this.addClass( str );
 					}
 
-					return this._classes.join(' ');
+					return this._.classes.join(' ');
 				}
 
 				,hasClass: function( str ){
@@ -235,7 +242,7 @@ define(
 
 					while( a = args.shift() ){
 
-						ret = ret && (this._classes.indexOf( a ) >= 0);
+						ret = ret && (this._.classes.indexOf( a ) >= 0);
 					}
 
 					return ret;
@@ -243,13 +250,15 @@ define(
 
 				,add: function( body ) {
 					
+					var _ = this._;
+
 					// parent setting successful?
 					if ( body.parent( this ) === this ){
 						
-						this._children[ body.id() ] = body;
+						_.children[ body.id() ] = body;
 						
-						body.subscribe( 'children.modified', this._bubble['children.modified'] );
-						body.subscribe( 'modified', this._bubble['children.modified'] );
+						body.subscribe( 'children.modified', _.bubble['children.modified'] );
+						body.subscribe( 'modified', _.bubble['children.modified'] );
 
 						// announce children changed ( modifiedArray, origin, prop )
 						this._fire( 'children.modified', [ [body], this, 'children' ] );
@@ -266,13 +275,15 @@ define(
 
 				,remove: function( body ){
 
+					var _ = this._;
+
 					if (body.parent() === this){
 
 						body.parent( null );
-						delete this._children[ body.id() ];
+						delete _.children[ body.id() ];
 
-						body.unsubscribe( 'children.modified', this._bubble['children.modified'] );	
-						body.unsubscribe( 'modified', this._bubble['children.modified'] );
+						body.unsubscribe( 'children.modified', _.bubble['children.modified'] );	
+						body.unsubscribe( 'modified', _.bubble['children.modified'] );
 
 						// announce children changed ( modifiedArray, origin, prop )
 						this._fire( 'children.modified', [ [body], this, 'children' ] );
@@ -284,15 +295,17 @@ define(
 				// get or set
 				,parent: function( par ){
 
-					// parents can't be children (stop grandfather paradox :)
-					if ( (par || par === null) && (this._parent !== par) && (this !== par) && (par.parents().indexOf(this) < 0) ){
+					var _ = this._;
 
-						if ( this._parent ) this._parent.remove( this );
-						this._parent = par;
-						if ( par ) this._parent.add( this );
+					// parents can't be children (stop grandfather paradox :)
+					if ( (par || par === null) && (_.parent !== par) && (this !== par) && (par.parents().indexOf(this) < 0) ){
+
+						if ( _.parent ) _.parent.remove( this );
+						_.parent = par;
+						if ( par ) _.parent.add( this );
 					}
 
-					return this._parent;
+					return _.parent;
 				}
 
 				// get list of parents
@@ -315,7 +328,8 @@ define(
 				// child management
 				,children: function( narrow, deep ){
 
-					var ret = []
+					var _ = this._
+						,ret = []
 						,retVal
 						,c
 						;
@@ -326,9 +340,9 @@ define(
 					// narrow can be a filter function( el, idx, parent ), simple selector string, or bool
 					if ( !narrow ){
 
-						for ( var id in this._children ){
+						for ( var id in _.children ){
 							
-							ret.push( c = this._children[id] );
+							ret.push( c = _.children[id] );
 
 							if ( deep ) ret.push.apply(ret, c.children( narrow, deep ));
 						}
@@ -337,9 +351,9 @@ define(
 
 					} else if ( Tools.isFunction( narrow ) ){
 
-						for ( var id in this._children ){
+						for ( var id in _.children ){
 							
-							retVal = !!narrow( c = this._children[id], id, this );
+							retVal = !!narrow( c = _.children[id], id, this );
 
 							if ( retVal ){
 
@@ -359,14 +373,15 @@ define(
 						// invalid selector
 						if ( !retVal ) return [];
 
-						var prop = retVal[1]? ( retVal[1] === '#'? 'id' : 'hasClass' ) : 'type'
+						var _ = this._
+							,prop = retVal[1]? ( retVal[1] === '#'? 'id' : 'hasClass' ) : 'type'
 							,val = retVal[2]
 							; 
 						
 						// like highlander... there can only be one
 						if ( prop === 'id' ){
 
-							c = this._children[ val ];
+							c = _.children[ val ];
 							
 							if ( c ){
 
@@ -375,9 +390,9 @@ define(
 
 							if ( deep ){
 
-								for ( var id in this._children ){
+								for ( var id in _.children ){
 
-									if ( c = this._children[id] ){
+									if ( c = _.children[id] ){
 
 										return [ c ];
 									}
@@ -388,9 +403,9 @@ define(
 							return ret;
 						}
 
-						for ( var id in this._children ){
+						for ( var id in _.children ){
 							
-							c = this._children[id];
+							c = _.children[id];
 
 							retVal = c[ prop ]() === val;
 
@@ -410,11 +425,13 @@ define(
 					
 					if ( this === child ) return false;
 
-					for ( var i = 0, l = this._children.length; i < l; ++i ){
+					var _ = this._;
+
+					for ( var i = 0, l = _.children.length; i < l; ++i ){
 						
 						if (
-						   child === this._children[i] ||
-						   this._children[i].contains( child )
+						   child === _.children[i] ||
+						   _.children[i].contains( child )
 						){
 							return true;
 						}
@@ -425,7 +442,7 @@ define(
 
 				,data: function( hash, val ){
 
-					return val? (this._data[ hash ] = val) : this._data[ hash ];
+					return val? (this._.data[ hash ] = val) : this._.data[ hash ];
 				}
 
 			}, 'Body')

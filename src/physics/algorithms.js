@@ -1,9 +1,11 @@
 define(
     [
-        '../util/tools'
+        '../util/tools',
+        '../math/vector'
     ],
     function(
-        Tools
+        Tools,
+        Vector
     ){
 
         return {
@@ -12,26 +14,24 @@ define(
                 // strength of gravity
                 NewtonianGravity: function( strength ){
 
-                    var i, l, other, pos, otherpos, x, y, z, lensq, len, g;
+                    var i, l, other, pos, otherpos = new Vector(), lensq, g;
 
                     return {
 
-                        soft: function( delta, obj, idx, list ){
+                        soft: function( dt, obj, idx, list ){
 
                             for(i = idx+1, l = list.length; i < l; i++){
                                 
                                 pos = obj.position();
                                 other = list[ i ];
-                                otherpos = other.position();
-                                x = otherpos.x - pos.x;
-                                y = otherpos.y - pos.y;
-                                z = otherpos.z - pos.z;
-                                lensq = x*x + y*y + z*z;
-                                len = Math.sqrt(lensq);
-                                g = strength/(lensq*len);
+                                otherpos.clone(other.position());
+                                otherpos.vsub( pos );
 
-                                obj.accelerate( x=x*g, y=y*g, z=z*g );
-                                other.accelerate( -x, -y, -z );
+                                lensq = otherpos.normSq();
+                                g = strength/lensq;
+
+                                obj.accelerate( otherpos.normalize().mult( g ) );
+                                other.accelerate( otherpos.negate() );
                             }
                         }
                     };
@@ -39,29 +39,75 @@ define(
 
                 ,Friction: function( strength ){
 
-                    var p, l, x, y, z;
+                    var v = new Vector(), l, x, y, z;
 
                     // keep it between 1 and 0
                     strength = Math.max(Math.min(strength, 1), 0);
 
                     return {
 
-                        soft: function( delta, obj, idx, list ){
+                        soft: function( dt, obj, idx, list ){
 
-                            p = obj.position();
+                            v.clone( obj.velocity() );
 
-                            x = p.x - p.px;
-                            y = p.y - p.py;
-                            z = p.z - p.pz;
-                            l = Math.sqrt(x*x+y*y+z*z);
+                            // decrease velocity instead of applying acceleration
+                            v.mult( 1 - strength );
 
-                            // move previous position closer to slow it down proportionally
-                            // to the strength
-                            p.px += strength*x/l;
-                            p.py += strength*y/l;
-                            p.pz += strength*z/l;
+                            obj.velocity( v );
+                        }
+                    };
+                }
 
-                            obj.position( p );
+                ,SphereCollide: function( friction ){
+
+                    var len
+                        ,target
+                        ,diff = new Vector()
+                        ,pos1 = new Vector()
+                        ,pos2 = new Vector()
+                        ,r
+                        ,i
+                        ,l
+                        ,other
+                        ,factor
+                        ,fric = Tools.noop()
+                        ;
+
+                    if ( friction ){
+
+                        fric = this.Friction( friction ).soft;
+                    }
+
+                    return {
+
+                        hard: function( dt, obj, idx, list ){
+
+                            pos1.clone( obj.position() );
+                            r = obj.dimensions().radius;
+
+                            // each other
+                            for ( i = idx+1, l = list.length; i < l; i++ ){
+
+                                other = list[i];
+
+                                diff.clone( pos2.clone( other.position() ) );
+                                diff.vsub( pos1 );
+                                len = diff.norm();
+
+                                // sum of radii
+                                target = r + other.dimensions().radius;
+                                
+                                if ( len < target ){ 
+
+                                    factor = 0.5*(len-target)/len;
+                                    // move the spheres away from each other
+                                    // by half the conflicting length
+                                    other.position( pos2.vsub( diff.mult(factor) ) );
+                                    obj.position( pos1.vadd(diff) );
+
+                                    fric( dt, obj, idx, list );
+                                }
+                            }
                         }
                     };
                 }
@@ -102,9 +148,9 @@ define(
                     min.y = Tools.isNumericQuick( min.y )? min.y : -1/0;
                     min.z = Tools.isNumericQuick( min.z )? min.z : -1/0;
                     
-                    max.x = min.x + whd.width;
-                    max.y = min.y + whd.height;
-                    max.z = min.z + whd.depth;
+                    max.x = min.x + whd.x;
+                    max.y = min.y + whd.y;
+                    max.z = min.z + whd.z;
 
                     max.x = Tools.isNumericQuick( max.x )? max.x : 1/0;
                     max.y = Tools.isNumericQuick( max.y )? max.y : 1/0;
@@ -134,21 +180,25 @@ define(
                             pos = obj.position();
                             whd = obj.dimensions();
 
-                            pos.x = pos.x > (upper = max.x - whd.width/2) ? 
+                            if ( whd.radius ){
+                                whd.x = whd.y = whd.z = whd.radius*2;
+                            }
+
+                            pos.x = pos.x > (upper = max.x - whd.x/2) ? 
                                 (count++) && upper : 
-                                (lower = min.x + whd.width/2) > pos.x ? 
+                                (lower = min.x + whd.x/2) > pos.x ? 
                                     (count++) && lower : 
                                     pos.x;
 
-                            pos.y = pos.y > (upper = max.y - whd.height/2) ? 
+                            pos.y = pos.y > (upper = max.y - whd.y/2) ? 
                                 (count++) && upper : 
-                                (lower = min.y + whd.height/2) > pos.y ? 
+                                (lower = min.y + whd.y/2) > pos.y ? 
                                     (count++) && lower : 
                                     pos.y;
 
-                            pos.z = pos.z > (upper = max.z - whd.depth/2) ? 
+                            pos.z = pos.z > (upper = max.z - whd.z/2) ? 
                                 (count++) && upper : 
-                                (lower = min.z + whd.depth/2) > pos.z ? 
+                                (lower = min.z + whd.z/2) > pos.z ? 
                                     (count++) && lower : 
                                     pos.z;
 

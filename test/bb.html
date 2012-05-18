@@ -95,7 +95,7 @@ console.log(getInitialVelocity())
             pos = self.position();
             dim = self.dimensions();
 
-            r = dim.width/2;
+            r = dim.radius/2;
             persp = 2*r*distToBasket/(distToBasket-pos.z);
 
             view.css({
@@ -123,7 +123,7 @@ console.log(getInitialVelocity())
 
         return pQuery( '<sphere>' )
           .data( 'view', c )
-          .dimensions( r, r )
+          .dimensions( r )
           .position( x, y )
           .velocity( vx, vy );
       }

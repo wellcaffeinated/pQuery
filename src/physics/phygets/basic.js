@@ -2,11 +2,13 @@ define(
 	[
 		'../../util/class',
 		'../../util/tools',
+		'../../math/vector',
 		'../body'
 	],
 	function(
 		Class,
 		Tools,
+		Vector,
 		Body
 	){
 		
@@ -18,64 +20,53 @@ define(
 			
 			,Basic: function(){
 
-				this.x = this.y = this.z = 0;
-				this.midx = this.midy = this.midz = 0;
-				this.px = this.py = this.pz = 0;
-				//this.vx = this.vy = this.vz = 0;
-				this.ax = this.ay = this.az = 0;
-
 				Basic.prototype.__extends__.call( this );
+
+				var _ = this._;
+
+				// position
+				_.pos = new Vector();
+				// temp position
+				_.mid = new Vector();
+				// previous position
+				_.prev = new Vector();
+				// velocity
+				_.v = new Vector();
+				// acceleration
+				_.a = new Vector();
+				
 			}
 
 			,__extends__: Body
 
 			// used in stepping process
-			,resolveAcceleration: function( delta ){
+			,resolveAcceleration: function( dt ){
 
-				this.midx = this.x;
-				this.midy = this.y;
-				this.midz = this.z;
+				var _ = this._;
+
+				_.mid.clone(_.pos);
 
 				// verlet
-				this.x += this.ax * (delta*=delta);
-				this.y += this.ay * delta;
-				this.z += this.az * delta;
+				_.pos.vadd( _.a.mult( dt*dt ) );
 				
-				//euler
-				/*this.vx += this.ax*delta;
-				this.vy += this.ay*delta;
-				this.vz += this.az*delta;*/
-
-				this.ax = this.ay = this.az = 0;
+				_.a.zero();
 			}
 
-			,resolveInertia: function( delta ){
+			,resolveInertia: function( dt ){
 
 				// Verlet
-				var x = this.midx*2 - this.px
-					,y = this.midy*2 - this.py
-					,z = this.midz*2 - this.pz
-					;
+				// this method alows modifications to pos in interim to apply constraints
+				var _ = this._;
 
-				this.px = this.midx;
-				this.py = this.midy;
-				this.pz = this.midz;
+				_.pos.vadd( _.mid ).vsub( _.prev );
 
-				// this step alows modifications to x,y,z to apply constraints
-				this.x = x - (this.midx - this.x);
-				this.y = y - (this.midy - this.y);
-				this.z = z - (this.midz - this.z);
-
-				//euler
-				/*this.x += this.vx*delta;
-				this.y += this.vy*delta;
-				this.z += this.vz*delta;*/
-
+				_.prev.clone( _.mid );
 			}
 
 			,position: function( pos ){
 
-				var type
+				var _ = this._
+					,type
 					,prev = false
 					;
 
@@ -85,40 +76,36 @@ define(
 
 					if ( type === 'object' ){
 
-						this.x = Tools.isNumericQuick( pos.x )? pos.x : this.x;
-						this.y = Tools.isNumericQuick( pos.y )? pos.y : this.y;
-						this.z = Tools.isNumericQuick( pos.z )? pos.z : this.z;
+						_.pos.set(
+							( pos.x !== undefined )? pos.x : _.pos.x,
+							( pos.y !== undefined )? pos.y : _.pos.y,
+							( pos.z !== undefined )? pos.z : _.pos.z
+						);
 
-						this.px = Tools.isNumericQuick( pos.px )? pos.px : this.px;
-						this.py = Tools.isNumericQuick( pos.py )? pos.py : this.py;
-						this.pz = Tools.isNumericQuick( pos.pz )? pos.pz : this.pz;
-
-						//this._fire( 'physics.modified', [ [this], this, 'position' ] );
+						_.prev.set(
+							( pos.px !== undefined )? pos.px : _.prev.x,
+							( pos.py !== undefined )? pos.py : _.prev.y,
+							( pos.pz !== undefined )? pos.pz : _.prev.z
+						);
 
 					} else {
 
-						this.x = Tools.isNumericQuick( pos )? pos : this.x;
-						this.y = Tools.isNumericQuick( arguments[1] )? arguments[1] : this.y;
-						this.z = Tools.isNumericQuick( arguments[2] )? arguments[2] : this.z;
+						_.pos.set(
+							( pos !== undefined )? pos : _.pos.x,
+							( arguments[1] !== undefined )? arguments[1] : _.pos.y,
+							( arguments[2] !== undefined )? arguments[2] : _.pos.z
+						);
 
-						//this._fire( 'physics.modified', [ [this], this, 'position' ] );
 					}
 				}
 
-				return {
-					x: this.x,
-					y: this.y,
-					z: this.z,
-					// include previous position
-					px: this.px,
-					py: this.py,
-					pz: this.pz
-				};
+				return _.pos.toNative();
 			}
 
 			,velocity: function( vel ){
 
-				var type
+				var _ = this._
+					,type
 					;
 
 				if ( arguments.length > 0 ){
@@ -127,32 +114,36 @@ define(
 
 					if ( type === 'object' ){
 
-						this.px = this.x - (Tools.isNumericQuick( vel.x )? vel.x : 0);
-						this.py = this.y - (Tools.isNumericQuick( vel.y )? vel.y : 0);
-						this.pz = this.z - (Tools.isNumericQuick( vel.z )? vel.z : 0);
-
-						//this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
+						_.prev.clone(_.pos).vsub(
+						    _.v.set(
+								( vel.x !== undefined )? vel.x : 0,
+								( vel.y !== undefined )? vel.y : 0,
+								( vel.z !== undefined )? vel.z : 0
+							)
+						);
 
 					} else {
 
-						this.px = this.x - (Tools.isNumericQuick( vel )? vel : 0);
-						this.py = this.y - (Tools.isNumericQuick( arguments[1] )? arguments[1] : 0);
-						this.pz = this.z - (Tools.isNumericQuick( arguments[2] )? arguments[2] : 0);
+						_.prev.clone(_.pos).vsub(
+						    _.v.set(
+								( vel !== undefined )? vel : 0,
+								( arguments[1] !== undefined )? arguments[1] : 0,
+								( arguments[2] !== undefined )? arguments[2] : 0
+							)
+						);
 
-						//this._fire( 'physics.modified', [ [this], this, 'velocity' ] );
 					}
+
+					return _.v.toNative();
 				}
 
-				return {
-					x: this.x - this.px,
-					y: this.y - this.py,
-					z: this.z - this.pz
-				};	
+				return _.v.clone(_.pos).vsub(_.prev).toNative();	
 			}
 
 			,accelerate: function( accel ){
 
-				var type
+				var _ = this._
+					,type
 					;
 
 				if ( arguments.length > 0 ){
@@ -161,19 +152,20 @@ define(
 
 					if ( type === 'object' ){
 
-						if ( Tools.isNumericQuick( accel.x ) ) this.ax += accel.x;
-						if ( Tools.isNumericQuick( accel.y ) ) this.ay += accel.y;
-						if ( Tools.isNumericQuick( accel.z ) ) this.az += accel.z;
-
-						//this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
+						_.a.add(
+							( accel.x !== undefined )? accel.x : 0,
+							( accel.y !== undefined )? accel.y : 0,
+							( accel.z !== undefined )? accel.z : 0
+						);
 
 					} else {
 
-						if ( Tools.isNumericQuick( accel ) ) this.ax += accel;
-						if ( Tools.isNumericQuick( arguments[1] ) ) this.ay += arguments[1]
-						if ( Tools.isNumericQuick( arguments[2] ) ) this.az += arguments[2]
+						_.a.add(
+							( accel !== undefined )? accel : 0,
+							( arguments[1] !== undefined )? arguments[1] : 0,
+							( arguments[2] !== undefined )? arguments[2] : 0
+						);
 
-						//this._fire( 'physics.modified', [ [this], this, 'acceleration' ] );
 					}
 				}
 

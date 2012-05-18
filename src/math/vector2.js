@@ -6,8 +6,13 @@ define(
      */
     function Vector(x, y) {
 
-        this.x = x || 0.0;
-        this.y = y || 0.0;
+        // force instantiation
+        if ( !(this instanceof arguments.callee) ){
+
+            return new Vector( x,y );
+        }
+
+        this.set( x || 0, y || 0);
     }
 
     /**
@@ -56,9 +61,12 @@ define(
      */
     Vector.prototype.set = function(x, y) {
 
-      this.x = x;
-      this.y = y;
-      return this;
+        this._norm = false;
+        this._normSq = false;
+
+        this.x = x;
+        this.y = y;
+        return this;
     };
 
     /**
@@ -66,9 +74,12 @@ define(
      */
     Vector.prototype.vadd = function(v) {
 
-      this.x += v.x;
-      this.y += v.y;
-      return this;
+        this._norm = false;
+        this._normSq = false;
+
+        this.x += v.x;
+        this.y += v.y;
+        return this;
     };
 
     /**
@@ -76,15 +87,21 @@ define(
      */
     Vector.prototype.vsub = function(v) {
 
-      this.x -= v.x;
-      this.y -= v.y;
-      return this;
+        this._norm = false;
+        this._normSq = false;
+
+        this.x -= v.x;
+        this.y -= v.y;
+        return this;
     };
 
     /**
      * Add scalars to vector's components
      */
     Vector.prototype.add = function(x, y){
+        
+        this._norm = false;
+        this._normSq = false;
 
         this.x += x;
         this.y += y === undefined? x : y;
@@ -95,6 +112,9 @@ define(
      * Subtract scalars to vector's components
      */
     Vector.prototype.sub = function(x, y){
+        
+        this._norm = false;
+        this._normSq = false;
 
         this.x -= x;
         this.y -= y === undefined? x : y;
@@ -105,6 +125,13 @@ define(
      * Multiply by a scalar
      */
     Vector.prototype.mult = function(m) {
+        
+        if ( this._normSq ){
+
+            this._normSq *= m;
+            this._norm *= m;
+        }
+
         this.x *= m;
         this.y *= m;
         return this;
@@ -131,15 +158,15 @@ define(
      */
     Vector.prototype.norm = function() {
 
-        return Math.sqrt(this.x * this.x + this.y * this.y);
+        return this._norm? this._norm : this._norm = Math.sqrt( this._normSq = (this.x * this.x + this.y * this.y) );
     };
 
     /**
      * Get the norm squared
      */
-    Vector.prototype.magSq = function() {
+    Vector.prototype.normSq = function() {
 
-        return (this.x * this.x) + (this.y * this.y);
+        return this._normSq? this._normSq : this._normSq = (this.x * this.x) + (this.y * this.y);
     };
 
     /** 
@@ -172,8 +199,13 @@ define(
     Vector.prototype.normalize = function() {
 
         var m;
-        this.x /= (m = Math.sqrt(this.x * this.x + this.y * this.y));
+
+        this.x /= (m = this.norm());
         this.y /= m;
+
+        this._norm = 1;
+        this._normSq = 1;
+
         return this;
     };
 
@@ -184,13 +216,27 @@ define(
     Vector.prototype.clone = function(v) {
         
         if(v){
-         
+            
+            this._norm = false;
+            this._normSq = false;
+
             this.x = v.x;
             this.y = v.y;
             return this;
         }
 
         return new Vector( this.x, this.y );
+    };
+
+    /**
+     * Create a litteral object
+     */
+    Vector.prototype.toNative = function(){
+
+        return {
+            x: this.x,
+            y: this.y
+        };
     };
 
     /**
@@ -206,7 +252,10 @@ define(
     /**
      * Zero the vector
      */
-    Vector.prototype.clear = function() {
+    Vector.prototype.zero = function() {
+
+        this._norm = 0;
+        this._normSq = 0;
 
         this.x = 0.0;
         this.y = 0.0;
@@ -214,10 +263,20 @@ define(
     };
 
     /**
+     * Make this a vector in the opposite direction
+     */
+    Vector.prototype.negate = function(){
+
+        this.x = -this.x;
+        this.y = -this.y;
+        return this;
+    };
+
+    /**
      * Render string
      */
     Vector.prototype.toString = function(){
-        
+
         return this.x + ',' + this.y;
     };
 

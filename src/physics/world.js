@@ -18,11 +18,11 @@ define(
 			
 			,World: function(){
 
-				var self = this;
-
 				World.prototype.__extends__.call( this );
 
-				this._interactions = {
+				var _ = this._;
+
+				_.interactions = {
 
 					soft: [],
 					hard: [],
@@ -30,19 +30,15 @@ define(
 
 				};
 
-				this._childCache = null; // cache of all children in tree
-				this._refreshChildren = true;
+				_.childCache = null; // cache of all children in tree
+				_.refreshChildren = true;
 				this.subscribe('children.modified', function(){
 
-					self._refreshChildren = true;
+					_.refreshChildren = true;
 				});
 
 				// start with infinite dimensions
-				this._dimensions = {
-					w: 1/0,
-					h: 1/0,
-					d: 1/0
-				};
+				_.dimensions.set( 1/0, 1/0, 1/0 );
 			}
 
 			,__extends__: Body
@@ -55,11 +51,12 @@ define(
 
 			,registerInteraction: function( type, bodies, callback, par ){
 
-				var intr = {}
+				var _ = this._
+					,intr = {}
 					,p = par || this
 					;
 
-				if (type in this._interactions){
+				if (type in _.interactions){
 
 					if ( Tools.isFunction( bodies ) ){
 
@@ -79,7 +76,7 @@ define(
 					intr.parent = par;
 					intr.callback = callback;
 
-					this._interactions[ type ].push( intr );
+					_.interactions[ type ].push( intr );
 				}
 
 				return this;
@@ -87,7 +84,7 @@ define(
 
 			,doInteractions: function( type, delta ){
 
-				var list = this._interactions[ type ]
+				var list = this._.interactions[ type ]
 					,intr
 					,bodies
 					,par
@@ -117,7 +114,7 @@ define(
 
 			,resolveAcceleration: function( delta ){
 
-				var children = this._childCache
+				var children = this._.childCache
 					,i = children.length - 1
 					;
 
@@ -129,7 +126,7 @@ define(
 
 			,resolveInertia: function( delta ){
 
-				var children = this._childCache
+				var children = this._.childCache
 					,i = children.length - 1
 					;
 
@@ -142,10 +139,12 @@ define(
 			// internal method
 			,onestep: function( delta ){
 
-				if (this._refreshChildren){
+				var _ = this._;
 
-					this._childCache = this.children( true );
-					this._refreshChildren = false;
+				if ( _.refreshChildren ){
+
+					_.childCache = this.children( true );
+					_.refreshChildren = false;
 				}
 
                 this.time += delta;

@@ -4,6 +4,7 @@ define(
 		'./util/tools',
 		'./util/callbacks',
 		'./util/ticker',
+		'./math/vector',
 		'./physics/algorithms',
 		'./physics/world',
 		'./physics/phyget'
@@ -13,6 +14,7 @@ define(
 		Tools,
 		Callbacks,
 		Ticker,
+		Vector,
 		Algorithms,
 		World,
 		Phyget
@@ -193,6 +195,8 @@ define(
 		pQuery.extend( Algorithms );
 
 		pQuery.Callbacks = Callbacks;
+		
+		pQuery.Vector = Vector;
 
 		// asset creation
 		pQuery.extend({
