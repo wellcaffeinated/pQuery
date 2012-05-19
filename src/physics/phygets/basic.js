@@ -34,6 +34,9 @@ define(
 				_.v = new Vector();
 				// acceleration
 				_.a = new Vector();
+
+				// flags inbetween integration (for verlet collision purposes)
+				_.midInt = false;
 				
 			}
 
@@ -43,6 +46,8 @@ define(
 			,resolveAcceleration: function( dt ){
 
 				var _ = this._;
+
+				_.midInt = true;
 
 				_.mid.clone(_.pos);
 
@@ -57,6 +62,8 @@ define(
 				// Verlet
 				// this method alows modifications to pos in interim to apply constraints
 				var _ = this._;
+
+				_.midInt = false;
 
 				_.pos.vadd( _.mid ).vsub( _.prev );
 
@@ -82,11 +89,11 @@ define(
 							( pos.z !== undefined )? pos.z : _.pos.z
 						);
 
-						_.prev.set(
+						/*_.prev.set(
 							( pos.px !== undefined )? pos.px : _.prev.x,
 							( pos.py !== undefined )? pos.py : _.prev.y,
 							( pos.pz !== undefined )? pos.pz : _.prev.z
-						);
+						);*/
 
 					} else {
 
@@ -105,6 +112,7 @@ define(
 			,velocity: function( vel ){
 
 				var _ = this._
+					,pos = _.midInt? _.mid : _.pos
 					,type
 					;
 
@@ -112,9 +120,12 @@ define(
 
 					type = typeof vel;
 
+					// reset temp position because we're fixing the velocity
+					_.mid.clone(_.pos);
+
 					if ( type === 'object' ){
 
-						_.prev.clone(_.pos).vsub(
+						_.prev.clone(_.mid).vsub(
 						    _.v.set(
 								( vel.x !== undefined )? vel.x : 0,
 								( vel.y !== undefined )? vel.y : 0,
@@ -124,7 +135,7 @@ define(
 
 					} else {
 
-						_.prev.clone(_.pos).vsub(
+						_.prev.clone(_.mid).vsub(
 						    _.v.set(
 								( vel !== undefined )? vel : 0,
 								( arguments[1] !== undefined )? arguments[1] : 0,
@@ -137,7 +148,7 @@ define(
 					return _.v.toNative();
 				}
 
-				return _.v.clone(_.pos).vsub(_.prev).toNative();	
+				return _.v.clone(pos).vsub(_.prev).toNative();	
 			}
 
 			,accelerate: function( accel ){

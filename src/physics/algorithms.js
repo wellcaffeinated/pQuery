@@ -68,19 +68,26 @@ define(
                         ,r
                         ,i
                         ,l
+                        ,v1 = new Vector()
+                        ,v2 = new Vector()
                         ,other
                         ,factor
-                        ,fric = Tools.noop()
+                        ,cache
+                        ,cacheVal
                         ;
 
-                    if ( friction ){
-
-                        fric = this.Friction( friction ).soft;
-                    }
+                    friction = Math.max(Math.min( friction , 1 ), 0);
 
                     return {
 
                         hard: function( dt, obj, idx, list ){
+
+                            cacheVal = [];
+
+                            if (!idx){
+
+                                cache = {};
+                            }
 
                             pos1.clone( obj.position() );
                             r = obj.dimensions().radius;
@@ -92,21 +99,74 @@ define(
 
                                 diff.clone( pos2.clone( other.position() ) );
                                 diff.vsub( pos1 );
-                                len = diff.norm();
-
+                                
                                 // sum of radii
                                 target = r + other.dimensions().radius;
                                 
-                                if ( len < target ){ 
+                                if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
 
                                     factor = 0.5*(len-target)/len;
+
                                     // move the spheres away from each other
                                     // by half the conflicting length
                                     other.position( pos2.vsub( diff.mult(factor) ) );
                                     obj.position( pos1.vadd(diff) );
 
-                                    fric( dt, obj, idx, list );
+                                    cacheVal.push( other );
+
                                 }
+                            }
+
+                            if ( cacheVal.length ){
+
+                                cache[idx] = cacheVal;
+                            }
+                        }
+
+                        ,collision: function( dt, obj, idx, list ){
+
+                            if ( !(cacheVal = cache[idx]) ){
+
+                                return;
+                            }
+
+                            pos1.clone( obj.position() );
+                            r = obj.dimensions().radius;
+
+                            // previous collisions
+                            for ( i = 0, l = cacheVal.length; i < l; i++ ){
+
+                                other = cacheVal[i];
+
+                                diff.clone( pos2.clone( other.position() ) );
+                                diff.vsub( pos1 );
+                                
+                                // sum of radii
+                                target = r + other.dimensions().radius;
+                                
+                                v1.clone( obj.velocity() );
+                                v2.clone( other.velocity() );
+                                
+                                if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
+
+                                    factor = friction*0.5*(len-target)/len;
+
+                                    // move the spheres away from each other
+                                    // by half the conflicting length
+                                    other.position( pos2.vsub( diff.mult(factor) ) );
+                                    obj.position( pos1.vadd(diff) );
+
+                                }
+
+                                diff.normalize();
+
+                                factor = pos2.clone(v2).vsub(v1).dot(diff)
+                                // reduce velocity in direction along intersection axis
+                                v1.vadd( diff.mult( factor*friction ) );
+                                obj.velocity( v1 );
+                            
+                                v2.vsub( diff );
+                                other.velocity( v2 );
                             }
                         }
                     };

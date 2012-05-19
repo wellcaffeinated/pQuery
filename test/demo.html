@@ -128,7 +128,7 @@
 
       var spheres = pQuery(null);
 
-      for(var i = 0, n = 120; i < n; i++){
+      for(var i = 0, n = 20; i < n; i++){
 
         spheres = spheres.add(newCircle( 
           i*25%465+10+5*Math.random(), 
@@ -139,6 +139,8 @@
         ));
 
       }
+      //spheres = spheres.add(newCircle(100, 100, 10, 0, 0))
+        //.add(newCircle(400, 100, 10, -1, 0));
 
       spheres.appendTo(world);
 
@@ -155,23 +157,23 @@
         };
       })());
 
-      //spheres.interact( pQuery.interactions.NewtonianGravity( .2 ) );
+      spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
 
-      world.interact('soft', 'sphere', function( delta, sph ){
+      /*world.interact('soft', 'sphere', function( delta, sph ){
 
         // earth gravity
         sph.accelerate(0, 0.001);
 
-      });
+      });*/
 
-      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+      //spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
 
       var v = pQuery.Vector();
 
       world
         .dimensions( 500, 500 )
-        .interact( pQuery.interactions.ConstrainWithin( world, 0.5 ), 'sphere' )
-        .interact( pQuery.interactions.SphereCollide( 1/10 ), 'sphere' );
+        .interact( pQuery.interactions.ConstrainWithin( world, 0 ), 'sphere' )
+        .interact( pQuery.interactions.SphereCollide( 0.999 ), 'sphere' );
 
       var info = document.getElementById('info');
 

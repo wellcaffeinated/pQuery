@@ -48,7 +48,7 @@ define(
      */
     Vector.proj = function(v1, v2) {
 
-        return Vector.mult( v1.dot(v2) / v1.normSq(), v2 );
+        return Vector.mult( v1.dot(v2) / v2.normSq(), v2 );
     };
 
 
@@ -154,11 +154,20 @@ define(
     };
 
     /**
+     * Get projection of this along v
+     */
+    Vector.prototype.proj = function(v){
+
+        var m = this.dot( v ) / v.normSq();
+        return this.clone( v ).mult( m );
+    };
+
+    /**
      * Get the norm (length)
      */
     Vector.prototype.norm = function() {
 
-        return this._norm? this._norm : this._norm = Math.sqrt( this._normSq = (this.x * this.x + this.y * this.y) );
+        return this._norm !== false? this._norm : this._norm = Math.sqrt( this._normSq = (this.x * this.x + this.y * this.y) );
     };
 
     /**
@@ -166,7 +175,7 @@ define(
      */
     Vector.prototype.normSq = function() {
 
-        return this._normSq? this._normSq : this._normSq = (this.x * this.x) + (this.y * this.y);
+        return this._normSq !== false? this._normSq : this._normSq = (this.x * this.x) + (this.y * this.y);
     };
 
     /** 
@@ -198,9 +207,14 @@ define(
      */
     Vector.prototype.normalize = function() {
 
-        var m;
+        var m = this.norm();
 
-        this.x /= (m = this.norm());
+        // means it's a zero vector
+        if ( m === 0 ){
+            return this;
+        }
+
+        this.x /= m;
         this.y /= m;
 
         this._norm = 1;
