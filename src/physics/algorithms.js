@@ -74,6 +74,7 @@ define(
                         ,factor
                         ,cache
                         ,cacheVal
+                        ,v
                         ;
 
                     friction = Math.max(Math.min( friction , 1 ), 0);
@@ -82,7 +83,7 @@ define(
 
                         hard: function( dt, obj, idx, list ){
 
-                            cacheVal = [];
+                            cacheVal = false;
 
                             if (!idx){
 
@@ -107,17 +108,25 @@ define(
 
                                     factor = 0.5*(len-target)/len;
 
+                                    // recycle
+                                    cacheVal = cacheVal || { v: obj.velocity(), list: [] };
+                                    target = other.velocity();
+
                                     // move the spheres away from each other
                                     // by half the conflicting length
                                     other.position( pos2.vsub( diff.mult(factor) ) );
                                     obj.position( pos1.vadd(diff) );
 
-                                    cacheVal.push( other );
+                                    cacheVal.list.push({
+                                        other: other,
+                                        axis: diff.toNative(),
+                                        v: target
+                                    });
 
                                 }
                             }
 
-                            if ( cacheVal.length ){
+                            if ( cacheVal ){
 
                                 cache[idx] = cacheVal;
                             }
@@ -134,9 +143,9 @@ define(
                             r = obj.dimensions().radius;
 
                             // previous collisions
-                            for ( i = 0, l = cacheVal.length; i < l; i++ ){
+                            for ( i = 0, l = cacheVal.list.length; i < l; i++ ){
 
-                                other = cacheVal[i];
+                                other = cacheVal.list[i].other;
 
                                 diff.clone( pos2.clone( other.position() ) );
                                 diff.vsub( pos1 );
@@ -144,25 +153,32 @@ define(
                                 // sum of radii
                                 target = r + other.dimensions().radius;
                                 
-                                v1.clone( obj.velocity() );
-                                v2.clone( other.velocity() );
-                                
                                 if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
 
-                                    factor = friction*0.5*(len-target)/len;
+                                    factor = 0.5*(len-target)/len;
 
                                     // move the spheres away from each other
                                     // by half the conflicting length
                                     other.position( pos2.vsub( diff.mult(factor) ) );
                                     obj.position( pos1.vadd(diff) );
 
-                                }
+                                } else continue;
 
-                                diff.normalize();
+                                v1.clone( cacheVal.v );
+                                v2.clone( cacheVal.list[i].v );
 
-                                factor = pos2.clone(v2).vsub(v1).dot(diff)
+                                diff.clone( cacheVal.list[i].axis ).normalize();
+
+                                v = pos2.clone(v2).vsub(v1);
+                                factor = v.dot(diff);
+                                if ( factor >= 0 )continue;
+
                                 // reduce velocity in direction along intersection axis
-                                v1.vadd( diff.mult( factor*friction ) );
+                                diff.mult( factor );
+
+                                diff.vsub( v.mult( 0.5*friction ) );
+
+                                v1.vadd( diff );
                                 obj.velocity( v1 );
                             
                                 v2.vsub( diff );

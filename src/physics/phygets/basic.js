@@ -112,7 +112,7 @@ define(
 			,velocity: function( vel ){
 
 				var _ = this._
-					,pos = _.midInt? _.mid : _.pos
+					,pos = _.pos
 					,type
 					;
 
