@@ -128,19 +128,19 @@
 
       var spheres = pQuery(null);
 
-      for(var i = 0, n = 2; i < n; i++){
+      // for(var i = 0, n = 30; i < n; i++){
 
-        spheres = spheres.add(newCircle( 
-          i*25%465+10+5*Math.random(), 
-          Math.floor((i*30+10)/465)*25+10+5*Math.random(), 
-          10, 
-          0*(Math.random()-0.5), 
-          0*Math.random()
-        ));
+      //   spheres = spheres.add(newCircle( 
+      //     i*25%465+10+5*Math.random(), 
+      //     Math.floor((i*30+10)/465)*25+10+5*Math.random(), 
+      //     10, 
+      //     1*(Math.random()-0.5), 
+      //     0*Math.random()
+      //   ));
 
-      }
-      // spheres = spheres.add(newCircle(100, 105, 10, 1, -1))
-      //   .add(newCircle(400, 100, 10, -1, -1));
+      // }
+      spheres = spheres.add(newCircle(10, 120, 10, 0, 0))
+        .add(newCircle(10, 100, 10, 0, 0));
 
       spheres.appendTo(world);
 
@@ -157,34 +157,52 @@
         };
       })());
 
-      spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
+      // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
 
-      // world.interact('soft', 'sphere', function( delta, sph ){
+      world.interact('soft', 'sphere', function( delta, sph ){
 
-      //   // earth gravity
-      //   sph.accelerate(0, 0.001);
+        // earth gravity
+        sph.accelerate(0, 0.001);
 
-      // });
+      });
 
-      //spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
 
       var v = pQuery.Vector();
 
       world
-        .dimensions( 500, 500 )
+        .dimensions( 20, 500 )
         .interact( pQuery.interactions.ConstrainWithin( world, 0 ), 'sphere' )
-        .interact( pQuery.interactions.SphereCollide( 0. ), 'sphere' )
+        .interact( pQuery.interactions.SphereCollide( 0.5 ), 'sphere' )
         ;
 
       var info = document.getElementById('info');
 
       pQuery.ticker.subscribe(function(time, dt){
 
-        world.step(8, time);
+        world.step(time);
+
+      });
+
+      world.on('step', function(){
         //monitor energy
           var E = 0;
+          
           spheres.each(function(){
-            E += v.clone(this.velocity()).normSq();
+            E += 0.5*v.clone(this.velocity()).normSq();
+            var self = this
+              , r = this.position()
+              ;
+            
+            E -= 0.001*this.position().y;
+            // potential
+            //spheres.each(function(){
+
+              //if ( this === self )return;
+              //E -= 0.5/v.clone(this.position()).vsub(r).norm();
+
+            //});
+
           })
           
         info.innerHTML = 'FPS: '+world[0].FPS+
@@ -192,9 +210,8 @@
           '<br/>Energy: '+ E;
 
           ;
-
-      });
-
+      })
+world.timeStep( 8 );
       pQuery.ticker.start();
 
       var ss = document.getElementById('stopstart');

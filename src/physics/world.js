@@ -39,6 +39,9 @@ define(
 
 				// start with infinite dimensions
 				_.dimensions.set( 1/0, 1/0, 1/0 );
+
+				// start with a default timestep
+				_.dt = 8;
 			}
 
 			,__extends__: Body
@@ -82,7 +85,7 @@ define(
 				return this;
 			}
 
-			,doInteractions: function( type, delta ){
+			,doInteractions: function( type, dt ){
 
 				var list = this._.interactions[ type ]
 					,intr
@@ -105,14 +108,14 @@ define(
 
 					for ( j = 0, m = bodies.length; j < m; ++j ){
 
-						intr.callback.call((ch = bodies[ j ]), delta, ch, j, bodies, par );
+						intr.callback.call((ch = bodies[ j ]), dt, ch, j, bodies, par );
 					}
 				}
 
 				return this;
 			}
 
-			,resolveAcceleration: function( delta ){
+			,resolveAcceleration: function( dt ){
 
 				var children = this._.childCache
 					,i = children.length - 1
@@ -120,11 +123,11 @@ define(
 
 				for (; i > -1; i--){
 
-					children[i].resolveAcceleration( delta );
+					children[i].resolveAcceleration( dt );
 				}
 			}
 
-			,resolveInertia: function( delta ){
+			,resolveInertia: function( dt ){
 
 				var children = this._.childCache
 					,i = children.length - 1
@@ -132,77 +135,95 @@ define(
 
 				for (; i > -1; i--){
 
-					children[i].resolveInertia( delta );
+					children[i].resolveInertia( dt );
 				}
 			}
 
 			// internal method
-			,onestep: function( delta ){
+			,onestep: function(){
 
-				var _ = this._;
+				var _ = this._
+					,dt = _.dt
+					;
 
 				if ( _.refreshChildren ){
 
-					_.childCache = this.children( true );
+					_.childCache = this.children( function( c ){
+
+						c.timeStep( _.dt );
+						return true;
+					}, true );
 					_.refreshChildren = false;
 				}
 
-                this.time += delta;
-                this.doInteractions( 'soft', delta );
-                this.resolveAcceleration( delta );
-                this.doInteractions( 'hard', delta );
-                this.resolveInertia( delta );
-				this.doInteractions( 'collision', delta );
+                _.time += dt;
+
+                this.doInteractions( 'soft', dt );
+                this.resolveAcceleration( dt );
+                this.doInteractions( 'hard', dt );
+                this.resolveInertia( dt );
+				this.doInteractions( 'collision', dt );
                 //this.cleanup();
+
+                return _.time;
             }
 
-			,step: function( timestep, now ){
+            ,timeStep: function( dt ){
+
+            	if ( dt ){
+
+            		this._.dt = dt;
+
+            		if ( !this._.childCache ) return this;
+            		
+            		var children = this._.childCache
+						,i = children.length - 1
+						;
+
+					for (; i > -1; i--){
+
+						children[i].timeStep( dt );
+					}
+
+            		return this;
+            	}
+
+            	return this._.dt;
+            }
+
+			,step: function( now ){
 				
 				if ( this.paused ){
 
 					return this;
 				}
 
-				var time = this.time || (this.time = now)
-					,diff
+				var _ = this._
+					,time = _.time || (_.time = now)
+					,diff = now - time
 					;
 
-				diff = (now - this.time);
-				//timestep = diff/2;
+				// set some stats
 				this.FPS = 1000/diff;
-				this.nsteps = Math.ceil(diff/timestep);
+				this.nsteps = Math.ceil(diff/_.dt);
 
+				// prevent hiccups
                 if ( now - time > 250 ){
 
-                    time = now - 250;
+                    _.time = now - 250;
 
                 }
 
-                while ( this.time < now ){
+                while ( this.onestep() < now ){}
 
-                    this.onestep( timestep );
-
-                }
-
-                diff = time - now;
-
-                if ( diff > 0 ){
-
-                    this.u = (timestep - diff)/timestep;
-
-                } else {
-
-                    this.u = 1.0;
-                }
-
-                this._fire('step', [ timestep, now ]);
+                this._fire('step', [ _.dt, _.time ]);
                 return this;
             }
 
             ,pause: function(){
 
             	this.paused = true;
-            	this.time = false;
+            	this._.time = false;
             	return this;
             }
 

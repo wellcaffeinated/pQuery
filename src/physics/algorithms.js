@@ -108,15 +108,21 @@ define(
 
                                     factor = 0.5*(len-target)/len;
 
-                                    // recycle
-                                    cacheVal = cacheVal || { v: obj.velocity(), list: [] };
+                                    v = obj.velocity();
                                     target = other.velocity();
 
                                     // move the spheres away from each other
                                     // by half the conflicting length
                                     other.position( pos2.vsub( diff.mult(factor) ) );
                                     obj.position( pos1.vadd(diff) );
+                                    
+                                    v1.clone( obj.velocity() );
+                                    v2.clone( other.velocity() );
 
+                                    //if(v2.vsub(v1).normSq() < 1e-30) continue;
+                                    
+                                    cacheVal = cacheVal || { v: v, list: [] };
+                                    
                                     cacheVal.list.push({
                                         other: other,
                                         axis: diff.toNative(),
@@ -162,7 +168,7 @@ define(
                                     other.position( pos2.vsub( diff.mult(factor) ) );
                                     obj.position( pos1.vadd(diff) );
 
-                                } else continue;
+                                }
 
                                 v1.clone( cacheVal.v );
                                 v2.clone( cacheVal.list[i].v );
@@ -171,17 +177,22 @@ define(
 
                                 v = pos2.clone(v2).vsub(v1);
                                 factor = v.dot(diff);
-                                if ( factor >= 0 )continue;
+
+                                // if objects are approaching eachother
+                                if ( factor < 0 ) continue;
 
                                 // reduce velocity in direction along intersection axis
+                                // proj v1-v2 onto axis 
                                 diff.mult( factor );
 
-                                diff.vsub( v.mult( 0.5*friction ) );
-
                                 v1.vadd( diff );
-                                obj.velocity( v1 );
-                            
                                 v2.vsub( diff );
+
+                                diff.mult( 0.5*friction );
+                                v2.vadd( diff );
+                                v1.vsub( diff );
+
+                                obj.velocity( v1 );
                                 other.velocity( v2 );
                             }
                         }

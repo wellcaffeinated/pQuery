@@ -34,6 +34,8 @@ define(
 				_.v = new Vector();
 				// acceleration
 				_.a = new Vector();
+				// timestep
+				_.dt = 1;
 
 				// flags inbetween integration (for verlet collision purposes)
 				_.midInt = false;
@@ -89,12 +91,6 @@ define(
 							( pos.z !== undefined )? pos.z : _.pos.z
 						);
 
-						/*_.prev.set(
-							( pos.px !== undefined )? pos.px : _.prev.x,
-							( pos.py !== undefined )? pos.py : _.prev.y,
-							( pos.pz !== undefined )? pos.pz : _.prev.z
-						);*/
-
 					} else {
 
 						_.pos.set(
@@ -130,7 +126,7 @@ define(
 								( vel.x !== undefined )? vel.x : 0,
 								( vel.y !== undefined )? vel.y : 0,
 								( vel.z !== undefined )? vel.z : 0
-							)
+							).mult( _.dt )
 						);
 
 					} else {
@@ -140,15 +136,15 @@ define(
 								( vel !== undefined )? vel : 0,
 								( arguments[1] !== undefined )? arguments[1] : 0,
 								( arguments[2] !== undefined )? arguments[2] : 0
-							)
+							).mult( _.dt )
 						);
 
 					}
 
-					return _.v.toNative();
+					return _.v.mult( 1/_.dt ).toNative();
 				}
 
-				return _.v.clone(pos).vsub(_.prev).toNative();	
+				return _.v.clone(pos).vsub(_.prev).mult( 1/_.dt ).toNative();	
 			}
 
 			,accelerate: function( accel ){
@@ -182,6 +178,21 @@ define(
 
 				return this;
 			}
+
+			,timeStep: function( dt ){
+
+            	if ( dt ){
+
+            		// rescale the velocity
+            		var v = this.velocity();
+            		this._.dt = dt;
+            		this.velocity( v );
+            		
+            		return this;
+            	}
+
+            	return this._.dt;
+            }
 
 		}, 'Basic');
 

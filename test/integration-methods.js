@@ -1,8 +1,9 @@
-function IntegrationTest(count, time) {
-    this.count = count||100;
+function IntegrationTest(step, time) {
+    
     this.a = 9.81;
     this.t = time||1;
-    this.dt = this.t/this.count;
+    this.dt = step || 0.01;
+    this.count = this.t/this.dt;
 }
 
 IntegrationTest.prototype = {
@@ -18,6 +19,7 @@ IntegrationTest.prototype = {
         var v = this.a*this.t;
 
         this.log('AnalyticSolution', x, v);
+        return x;
     }
 
     ,SimpleEuler: function(){
@@ -29,17 +31,20 @@ IntegrationTest.prototype = {
         } // for
 
         this.log('SimpleEuler', x, v);
+        return x;
     }
 
     ,AccurateEuler: function(){
         
         var x = 0, v = 0, i, a = this.a, dt = this.dt, count = this.count;
+        var dt2 = dt*dt;
         for (i=0; i < count; i++) {
-            x += v*dt + .5*a*dt*dt;
+            x += v*dt + .5*a*dt2;
             v += a*dt;
         } // for
 
         this.log('AccurateEuler', x, v);
+        return x;
     }
 
     ,NSV: function(){
@@ -51,6 +56,7 @@ IntegrationTest.prototype = {
         } // for
 
         this.log('NSF', x, v);
+        return x;
     }
 
     ,Verlet: function(){
@@ -63,7 +69,8 @@ IntegrationTest.prototype = {
             xc += v;
         } // for
 
-        this.log('Verlet', xo, xc, v);
+        this.log('Verlet', xc, v/this.dt);
+        return xc;
     }
 
     ,NSV2: function(){
@@ -75,7 +82,8 @@ IntegrationTest.prototype = {
             x += v; // v is prescaled: really a displacement.
         } // for
 
-        this.log('NSV2', x, v);
+        this.log('NSV2', x, v/this.dt);
+        return x;
     }
 
     ,VelocityVerlet: function(){
@@ -90,5 +98,6 @@ IntegrationTest.prototype = {
         } // for
 
         this.log('VelocityVerlet', x, v);
+        return x;
     }
 };

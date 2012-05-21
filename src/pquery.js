@@ -195,7 +195,7 @@ define(
 		pQuery.extend( Algorithms );
 
 		pQuery.Callbacks = Callbacks;
-		
+
 		pQuery.Vector = Vector;
 
 		// asset creation
@@ -625,14 +625,26 @@ define(
 				return this;
 			}
 		});
-
+	
 		// world methods
 		pQuery.fn.extend({
 
-			step: function( timestep, now ){
+			step: function( now ){
 
-				this.world.step( timestep, now );
+				this.world.step( now );
 				return this;
+			}
+
+			// get/set timestep
+			,timeStep: function( dt ){
+
+				if ( dt ){
+
+					this.world.timeStep( dt );
+					return this;
+				}
+
+				return this.world.timeStep();
 			}
 
 			,pause: function(){
