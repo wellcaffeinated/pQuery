@@ -128,7 +128,7 @@
 
       var spheres = pQuery(null);
 
-      while(spheres.length < 20){
+      while(spheres.length < 100){
         var x = Math.random() * (500-50) + 25
             ,y = Math.random() * (500-50) + 25
             ,r = Math.random() * 20 + 5
@@ -167,8 +167,10 @@
 
       // }
 
-      // spheres = spheres.add(newCircle(10, 120, 10, 0, 0))
-      //   .add(newCircle(10, 100, 10, 0, 0));
+      // spheres = spheres.add(newCircle(400, 120, 10, -.1, 0))
+      //   .add(newCircle(100, 120, 10, 0, 0))
+        // .add(newCircle(100, 430, 10, 0, 0))
+        // .add(newCircle(100, 400, 10, 0, 0));
 
       spheres.appendTo(world);
 
@@ -185,14 +187,14 @@
         };
       })());
 
-      spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
+      // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
 
-      // world.interact('soft', 'sphere', function( delta, sph ){
+      world.interact('soft', 'sphere', function( delta, sph ){
 
-      //   // earth gravity
-      //   sph.accelerate(0, 0.0005);
+        // earth gravity
+        sph.accelerate(0, 0.0005);
 
-      // });
+      });
 
       //spheres.interact( pQuery.interactions.Drag( 1/10000 ) );
 
@@ -200,8 +202,8 @@
 
       world
         .dimensions( 500, 500 )
-        .interact( pQuery.interactions.SphereCollide( 0.6 ), 'sphere' )
-        .interact( pQuery.interactions.ConstrainWithin( world, 0.2 ), 'sphere' )
+        .interact( pQuery.interactions.SphereCollide( 0.8 ), 'sphere' )
+        .interact( pQuery.interactions.ConstrainWithin( world, 0.3 ), 'sphere' )
         ;
 
       var info = document.getElementById('info');
@@ -224,12 +226,12 @@
             
             E -= 0.001*this.position().y;
             // potential
-            //spheres.each(function(){
+            // spheres.each(function(){
 
-              //if ( this === self )return;
-              //E -= 0.5/v.clone(this.position()).vsub(r).norm();
+            //   if ( this === self )return;
+            //   E -= 0.5/v.clone(this.position()).vsub(r).norm();
 
-            //});
+            // });
 
           })
           

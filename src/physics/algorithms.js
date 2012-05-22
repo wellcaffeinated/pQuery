@@ -70,8 +70,6 @@ define(
                         ,l
                         ,v1 = new Vector()
                         ,v2 = new Vector()
-                        ,v1corr = new Vector()
-                        ,v2corr = new Vector()
                         ,other
                         ,factor
                         ,preserveImpulse = false
@@ -99,8 +97,11 @@ define(
 
                                 factor = 0.5*(len-target)/len;
 
-                                v1.clone( obj.velocity() );
-                                v2.clone( other.velocity() );
+                                if ( preserveImpulse ){
+
+                                    v1.clone( obj.velocity() );
+                                    v2.clone( other.velocity() );
+                                }
 
                                 // move the spheres away from each other
                                 // by half the conflicting length
@@ -109,27 +110,18 @@ define(
                                 
                                 if ( preserveImpulse ){
 
-                                    diff.normalize();
-
-                                    v2corr.clone(v2).vsub(v1);
-                                    factor = v2corr.dot(diff);
+                                    factor = (v2.dot(diff) - v1.dot(diff))/(len*len);
 
                                     // if objects are moving away from each other or touching... then skip
                                     if ( factor >= 0 ) continue;
-                                    
-                                    v2corr.clone(diff).mult( v2.dot(diff) * friction );
-                                    v1corr.clone(diff).mult( v1.dot(diff) * friction );
 
-                                    // reduce velocity in direction along intersection axis
-                                    // proj v2-v1 onto axis 
-                                    diff.mult( factor );
+                                    // used to find new velocity in direction along intersection axis
+                                    // with restitution coefficient handling
+                                    // proj v2-v1 onto axis then multiply by coeff of restitution correction
+                                    diff.mult( factor * (1 - 0.5*friction) );
 
                                     v1.vadd( diff );
                                     v2.vsub( diff );
-
-                                    // restitution coefficient handling
-                                    v1.vsub( v2corr );
-                                    v2.vsub( v1corr );
 
                                     obj.velocity( v1 );
                                     other.velocity( v2 );
