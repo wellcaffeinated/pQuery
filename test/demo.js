@@ -1,11 +1,5 @@
-require.config({
-    baseUrl: '../src/'
-});
-
-require(['pquery'], function(pQuery){
-  
-    window.jQuery && jQuery.noConflict();
-
+require(['../src/pquery'], function(pQuery){
+    
     var stage, bounds;
 
     //check and see if the canvas element is supported in
@@ -31,39 +25,29 @@ require(['pquery'], function(pQuery){
     stage = new Stage(canvas);
 
 
-    //center
-    var c = new Shape();
-    c.x = canvas.width/2;
-    c.y = canvas.height/2;
-    c.graphics.beginFill(Graphics.getRGB(50,50,255,1));
-    c.graphics.drawCircle(0,0,5);
-    stage.addChild(c);
-
     // plugin to update position of views
-    pQuery.fn.extend({
-        
-        updateView: function(){
+    pQuery.fn.updateView = function(){
 
-            return this.each(function(){
+        return this.each(function(){
 
-                var self = pQuery(this)
-                    ,view = self.data('view')
-                    ,pos
-                    ;
+            var self = pQuery(this)
+                ,view = self.data('view')
+                ,pos
+                ;
 
-                if (view){
+            if (view){
 
-                    pos = self.position();
-                    view.x = pos.x;
-                    view.y = pos.y;
+                pos = self.position();
+                view.x = pos.x;
+                view.y = pos.y;
 
-                }
+            }
 
-            });
-        }
-    });
+        });
+    };
 
-    function addCircle(x, y, r, vx, vy){
+    // create and return a sphere with a canvas view
+    function newCircle(x, y, r, vx, vy){
 
         var c = new Shape();
         c.x = x;
@@ -73,142 +57,136 @@ require(['pquery'], function(pQuery){
         stage.addChild(c);
 
         return pQuery( '<sphere>' )
-          .data( 'view', c )
-          .appendTo( world )
-          .position( x, y )
-          .velocity( vx, vy );
-        };
+            .data( 'view', c )
+            .dimensions( r )
+            .position( x, y )
+            .velocity( vx, vy );
     }
 
-    var world = pQuery('world').on('step', (function(){
+    var spheres = pQuery(null);
 
-        // cache spheres
-        var spheres = world.find('sphere');
+    // create some spheres
+    while(spheres.length < 100){
+        var x = Math.random() * (500-50) + 25
+            ,y = Math.random() * (500-50) + 25
+            ,r = Math.random() * 20 + 5
+            ;
 
-        return function(){
-
-            spheres.updateView();
-
-            stage.update();
-        };
-
-    })());
-
-    for(var i = 0, n = 2; i < n; i++){
-        addCircle( i*25%465+10+5*Math.random(), Math.floor((i*30+10)/465)*25+10+5*Math.random(), 10, 10*(Math.random()-0.5), Math.random() );
-
-    spheres.interact(function( delta, sph, idx, list ){
-
-        for(var i = idx+1, l = list.length; i < l; i++){
-            // newtonian gravity
-            var pos = sph.position()
-                ,other = list[i].position()
-                ,x = other.x - pos.x
-                ,y = other.y - pos.y
-                ,lensq = x*x + y*y
-                ,len = Math.sqrt(lensq)
-                ,g = 1/(lensq*len)
-                ;
-
-            sph.accelerate(x=x*g, y=y*g);
-            list[i].accelerate(-x,-y);
+        var collides = false;
+        for(var i = 0, l = spheres.length; i < l; i++){
+                var other = spheres[i];
+                var pos = pQuery.Vector(x,y);
+                pos.vsub(other.position());
+                
+                if(pos.norm() < other.dimensions().radius + r){
+                        collides = true;
+                        break;
+                }
         }
+
+        if(!collides){
+            spheres = spheres.add(newCircle( 
+                x, 
+                y, 
+                r,
+                0*(Math.random()-0.5), 
+                0*Math.random()
+            ));
+        }
+    }
+
+    // cache the world
+    // set bounds
+    var world = pQuery('world').dimensions( bounds.width, bounds.height );
+
+    // put spheres into world
+    spheres.appendTo(world);
+
+    // what happens on each full step
+    world.on('step', function(){
+
+        spheres.updateView();
+        stage.update();
+    });
+
+    // define some interactions
+    world
+        .interact('soft', 'sphere', function( delta, sph ){
+
+            // earth gravity
+            sph.accelerate(0, 0.0005);
+
+        })
+        .interact( pQuery.interactions.SphereCollide( 0.8 ), 'sphere' )
+        .interact( pQuery.interactions.ConstrainWithin( world, 0.3 ), 'sphere' )
+        ;
+
+    // other fun things
+    // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
+    // spheres.interact( pQuery.interactions.Drag( 1/10000 ) );
+
+    // subscribe to the timer
+    pQuery.ticker.subscribe(function(time, dt){
+
+        world.step(time);
 
     });
 
-    /*world.interact(function( delta, sph ){
-
-    // earth gravity
-    sph.accelerate(0, 0.001);
-
-    // air friction
-    var v = sph.velocity()
-      l = 10000*Math.sqrt(v.x*v.x + v.y*v.y)
-      ;
-    sph.accelerate(-v.x/l,-v.y/l)
-
-    }, 'sphere');*/
-
-    world.interact('hard', function( delta, sph, idx, list ){
-
-        // boundary
-        sph.x = Math.min(Math.max(10, sph.x), 500-10);
-        sph.y = Math.min(Math.max(10, sph.y), 500-10);
-
-        if(sph.x === 10 || sph.x === 490){
-            // collision disipation
-            var v = sph.velocity()
-                ,f=1.1
-                ;
-
-            sph.velocity(v.x/f, v.y/f);
-        }
-
-        if(sph.y === 0 || sph.y === 490){
-            var v = sph.velocity()
-                ,f=1.1
-                ;
-
-            sph.velocity(v.x/f,v.y/f);
-
-        }
-
-        // each other
-        for(var i = idx+1, l = list.length; i < l; i++){
-
-            var other = list[i]
-                ,pos1 = sph.position()
-                ,pos2 = other.position()
-                ,x = pos2.x - pos1.x
-                ,y = pos2.y - pos1.y
-                ,len = Math.sqrt(x*x + y*y)
-                ,target = 20 // radius x 2
-                ;
-
-            if(len < target){ 
-                var factor = 0.5*(len-target)/len;
-                // move the spheres away from each other
-                // by half the conflicting length
-                other.position(pos2.x - x*factor, pos2.y - y*factor);
-                sph.position(pos1.x + x*factor, pos1.y + y*factor);
-
-                var v = sph.velocity()
-                ,f=1.002
-                ;
-
-                sph.velocity(v.x/f,v.y/f);
-
-                v = other.velocity();
-                other.velocity(v.x/f,v.y/f);
-            }
-        }
-    }, 'sphere');
-
+    // get some ui elements
     var info = document.getElementById('info');
-
-    pQuery.ticker.subscribe(function(time, delta){
-
-        world.step(5, time);
-        info.innerHTML = 'FPS: '+world[0].FPS+'<br/>steps: '+world[0].nsteps;
-
-    });
-
-    pQuery.ticker.start();
-
+    var v = pQuery.Vector();
     var ss = document.getElementById('stopstart');
+
+    // set up pause button
     ss.addEventListener('click', function(){
 
         if ( world.isPaused() ){
 
             world.unpause();
-            ss.innerHTML = 'Start';        
+            ss.innerHTML = 'Stop';        
             return;
         }
 
-        ss.innerHTML = 'Stop';
+        ss.innerHTML = 'Start';
         world.pause();
 
     });
 
+
+    world.on('step', function(){
+        //monitor energy
+        var E = 0;
+        
+        spheres.each(function(){
+            E += 0.5*v.clone(this.velocity()).normSq();
+            var self = this
+                , r = this.position()
+                ;
+            
+            // gravitational potential energy
+            E -= 0.001*this.position().y;
+            
+            // n-body gravity potential
+            // spheres.each(function(){
+
+            //   if ( this === self )return;
+            //   E -= 0.5/v.clone(this.position()).vsub(r).norm();
+
+            // });
+
+        });
+            
+        info.innerHTML = 'FPS: '+world[0].FPS+
+            '<br/>steps: '+world[0].nsteps+
+            '<br/>Energy: '+ E;
+
+            ;
+    })
+    
+    // set timestep size
+    world.timeStep( 16 );
+
+    // start the madness!
+    pQuery.ticker.start();
 
 });
