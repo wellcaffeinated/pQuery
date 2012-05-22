@@ -160,9 +160,9 @@ define(
 
                 this.doInteractions( 'soft', dt );
                 this.resolveAcceleration( dt );
-                this.doInteractions( 'hard', dt );
+                this.doInteractions( 'collision', dt );
                 this.resolveInertia( dt );
-				this.doInteractions( 'collision', dt );
+                this.doInteractions( 'hard', dt );
                 //this.cleanup();
 
                 return _.time;
@@ -175,7 +175,7 @@ define(
             		this._.dt = dt;
 
             		if ( !this._.childCache ) return this;
-            		
+
             		var children = this._.childCache
 						,i = children.length - 1
 						;

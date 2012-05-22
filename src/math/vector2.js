@@ -287,6 +287,17 @@ define(
     };
 
     /**
+     * Constrain vector components to minima and maxima
+     */
+    Vector.prototype.clamp = function(minV, maxV){
+
+        this.x = Math.min(Math.max(this.x, minV.x), maxV.x);
+        this.y = Math.min(Math.max(this.y, minV.y), maxV.y);
+        this._norm = this._normSq = false;
+        return this;
+    }
+
+    /**
      * Render string
      */
     Vector.prototype.toString = function(){

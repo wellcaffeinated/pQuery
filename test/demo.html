@@ -128,19 +128,47 @@
 
       var spheres = pQuery(null);
 
-      // for(var i = 0, n = 30; i < n; i++){
+      while(spheres.length < 20){
+        var x = Math.random() * (500-50) + 25
+            ,y = Math.random() * (500-50) + 25
+            ,r = Math.random() * 20 + 5
+            ;
+        var collides = false;
+        for(var i = 0, l = spheres.length; i < l; i++){
+            var other = spheres[i];
+            var pos = pQuery.Vector(x,y);
+            pos.vsub(other.position());
+            
+            if(pos.norm() < other.dimensions().radius + r){
+                collides = true;
+                break;
+            }
+        }
+        if(!collides){
+          spheres = spheres.add(newCircle( 
+            x, 
+            y, 
+            r,
+            0*(Math.random()-0.5), 
+            0*Math.random()
+          ));
+        }
+      }
+
+      // for(var i = 0, n = 10; i < n; i++){
 
       //   spheres = spheres.add(newCircle( 
       //     i*25%465+10+5*Math.random(), 
       //     Math.floor((i*30+10)/465)*25+10+5*Math.random(), 
-      //     10, 
-      //     1*(Math.random()-0.5), 
+      //     10+Math.floor(Math.random()*15), 
+      //     0*(Math.random()-0.5), 
       //     0*Math.random()
       //   ));
 
       // }
-      spheres = spheres.add(newCircle(10, 120, 10, 0, 0))
-        .add(newCircle(10, 100, 10, 0, 0));
+
+      // spheres = spheres.add(newCircle(10, 120, 10, 0, 0))
+      //   .add(newCircle(10, 100, 10, 0, 0));
 
       spheres.appendTo(world);
 
@@ -157,23 +185,23 @@
         };
       })());
 
-      // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
+      spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
 
-      world.interact('soft', 'sphere', function( delta, sph ){
+      // world.interact('soft', 'sphere', function( delta, sph ){
 
-        // earth gravity
-        sph.accelerate(0, 0.001);
+      //   // earth gravity
+      //   sph.accelerate(0, 0.0005);
 
-      });
+      // });
 
-      spheres.interact( pQuery.interactions.Friction( 1/10000 ) );
+      //spheres.interact( pQuery.interactions.Drag( 1/10000 ) );
 
       var v = pQuery.Vector();
 
       world
-        .dimensions( 20, 500 )
-        .interact( pQuery.interactions.ConstrainWithin( world, 0 ), 'sphere' )
-        .interact( pQuery.interactions.SphereCollide( 0.5 ), 'sphere' )
+        .dimensions( 500, 500 )
+        .interact( pQuery.interactions.SphereCollide( 0.6 ), 'sphere' )
+        .interact( pQuery.interactions.ConstrainWithin( world, 0.2 ), 'sphere' )
         ;
 
       var info = document.getElementById('info');
@@ -211,7 +239,8 @@
 
           ;
       })
-world.timeStep( 8 );
+      
+      world.timeStep( 16 );
       pQuery.ticker.start();
 
       var ss = document.getElementById('stopstart');

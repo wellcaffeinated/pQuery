@@ -37,7 +37,7 @@ define(
                     };
                 }
 
-                ,Friction: function( strength ){
+                ,Drag: function( strength ){
 
                     var v = new Vector(), l, x, y, z;
 
@@ -70,138 +70,91 @@ define(
                         ,l
                         ,v1 = new Vector()
                         ,v2 = new Vector()
+                        ,v1corr = new Vector()
+                        ,v2corr = new Vector()
                         ,other
                         ,factor
-                        ,cache
-                        ,cacheVal
-                        ,v
+                        ,preserveImpulse = false
                         ;
 
                     friction = Math.max(Math.min( friction , 1 ), 0);
 
-                    return {
+                    function fn( dt, obj, idx, list ){
 
-                        hard: function( dt, obj, idx, list ){
+                        pos1.clone( obj.position() );
+                        r = obj.dimensions().radius;
 
-                            cacheVal = false;
+                        // each other
+                        for ( i = idx+1, l = list.length; i < l; i++ ){
 
-                            if (!idx){
+                            other = list[i];
 
-                                cache = {};
-                            }
+                            diff.clone( pos2.clone( other.position() ) );
+                            diff.vsub( pos1 );
+                            
+                            // sum of radii
+                            target = r + other.dimensions().radius;
+                            
+                            if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
 
-                            pos1.clone( obj.position() );
-                            r = obj.dimensions().radius;
+                                factor = 0.5*(len-target)/len;
 
-                            // each other
-                            for ( i = idx+1, l = list.length; i < l; i++ ){
+                                v1.clone( obj.velocity() );
+                                v2.clone( other.velocity() );
 
-                                other = list[i];
-
-                                diff.clone( pos2.clone( other.position() ) );
-                                diff.vsub( pos1 );
+                                // move the spheres away from each other
+                                // by half the conflicting length
+                                other.position( pos2.vsub( diff.mult(factor) ) );
+                                obj.position( pos1.vadd(diff) );
                                 
-                                // sum of radii
-                                target = r + other.dimensions().radius;
-                                
-                                if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
+                                if ( preserveImpulse ){
 
-                                    factor = 0.5*(len-target)/len;
+                                    diff.normalize();
 
-                                    v = obj.velocity();
-                                    target = other.velocity();
+                                    v2corr.clone(v2).vsub(v1);
+                                    factor = v2corr.dot(diff);
 
-                                    // move the spheres away from each other
-                                    // by half the conflicting length
-                                    other.position( pos2.vsub( diff.mult(factor) ) );
-                                    obj.position( pos1.vadd(diff) );
+                                    // if objects are moving away from each other or touching... then skip
+                                    if ( factor >= 0 ) continue;
                                     
-                                    v1.clone( obj.velocity() );
-                                    v2.clone( other.velocity() );
+                                    v2corr.clone(diff).mult( v2.dot(diff) * friction );
+                                    v1corr.clone(diff).mult( v1.dot(diff) * friction );
 
-                                    //if(v2.vsub(v1).normSq() < 1e-30) continue;
-                                    
-                                    cacheVal = cacheVal || { v: v, list: [] };
-                                    
-                                    cacheVal.list.push({
-                                        other: other,
-                                        axis: diff.toNative(),
-                                        v: target
-                                    });
+                                    // reduce velocity in direction along intersection axis
+                                    // proj v2-v1 onto axis 
+                                    diff.mult( factor );
 
+                                    v1.vadd( diff );
+                                    v2.vsub( diff );
+
+                                    // restitution coefficient handling
+                                    v1.vsub( v2corr );
+                                    v2.vsub( v1corr );
+
+                                    obj.velocity( v1 );
+                                    other.velocity( v2 );
                                 }
-                            }
-
-                            if ( cacheVal ){
-
-                                cache[idx] = cacheVal;
                             }
                         }
+                    }
 
-                        ,collision: function( dt, obj, idx, list ){
+                    return {
 
-                            if ( !(cacheVal = cache[idx]) ){
+                        collision: fn
 
-                                return;
-                            }
+                        ,hard: function( dt, obj, idx, list ){
 
-                            pos1.clone( obj.position() );
-                            r = obj.dimensions().radius;
-
-                            // previous collisions
-                            for ( i = 0, l = cacheVal.list.length; i < l; i++ ){
-
-                                other = cacheVal.list[i].other;
-
-                                diff.clone( pos2.clone( other.position() ) );
-                                diff.vsub( pos1 );
-                                
-                                // sum of radii
-                                target = r + other.dimensions().radius;
-                                
-                                if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
-
-                                    factor = 0.5*(len-target)/len;
-
-                                    // move the spheres away from each other
-                                    // by half the conflicting length
-                                    other.position( pos2.vsub( diff.mult(factor) ) );
-                                    obj.position( pos1.vadd(diff) );
-
-                                }
-
-                                v1.clone( cacheVal.v );
-                                v2.clone( cacheVal.list[i].v );
-
-                                diff.clone( cacheVal.list[i].axis ).normalize();
-
-                                v = pos2.clone(v2).vsub(v1);
-                                factor = v.dot(diff);
-
-                                // if objects are approaching eachother
-                                if ( factor < 0 ) continue;
-
-                                // reduce velocity in direction along intersection axis
-                                // proj v1-v2 onto axis 
-                                diff.mult( factor );
-
-                                v1.vadd( diff );
-                                v2.vsub( diff );
-
-                                diff.mult( 0.5*friction );
-                                v2.vadd( diff );
-                                v1.vsub( diff );
-
-                                obj.velocity( v1 );
-                                other.velocity( v2 );
-                            }
+                            preserveImpulse = true;
+                            fn( dt, obj, idx, list );
+                            preserveImpulse = false;
                         }
                     };
                 }
 
                 ,ConstrainWithin: function( boundsOrParent, energyLoss ){
 
-                    var pos
+                    var pos = new Vector()
+                        ,v = new Vector()
                         ,min
                         ,max
                         ,whd
@@ -209,6 +162,7 @@ define(
                         ,lower
                         ,count
                         ,fric
+                        ,preserveImpulse = false
                         ;
 
                     if ( typeof boundsOrParent.dimensions === 'function' ){
@@ -243,60 +197,71 @@ define(
                     max.y = Tools.isNumericQuick( max.y )? max.y : 1/0;
                     max.z = Tools.isNumericQuick( max.z )? max.z : 1/0;
 
-                    if ( energyLoss ){
+                    function fn( dt, obj, idx, list, par ){
 
-                        // number between 1 and infinity
-                        energyLoss = Math.tan(Math.max(Math.min(energyLoss,1),0)*Math.PI/4) + 1;
+                        pos.clone( obj.position() );
+                        whd = obj.dimensions();
 
-                        fric = function( delta, obj ){
-                            var v = obj.velocity()
-                                ;
-                            
-                            obj.velocity(v.x/energyLoss, v.y/energyLoss, v.z/energyLoss);
-                        };
+                        if ( whd.radius ){
+
+                            whd.x = whd.y = whd.z = whd.radius;
+
+                        } else {
+
+                            whd.x /= 2;
+                            whd.y /= 2;
+                            whd.z /= 2;
+                        }
+
+                        if ( preserveImpulse ){
+
+                            v.clone( obj.velocity() );
+
+                            if ( pos.x > (max.x - whd.x) || pos.x < (min.x + whd.x) ){
+
+                                v.x = (energyLoss-1) * v.x;
+                            }
+
+                            if ( pos.y > (max.y - whd.y) || pos.y < (min.y + whd.y) ){
+
+                                v.y = (energyLoss-1) * v.y;
+                            }
+
+                            if ( pos.z > (max.z - whd.z) || pos.z < (min.z + whd.z) ){
+
+                                v.z = (energyLoss-1) * v.z;
+                            }
+                        }
+
+                        pos.clamp({
+                            x: min.x + whd.x,
+                            y: min.y + whd.y,
+                            z: min.z + whd.z
+                        },{
+                            x: max.x - whd.x,
+                            y: max.y - whd.y,
+                            z: max.z - whd.z
+                        });
+
+                        obj.position( pos );
                         
+                        if ( preserveImpulse ){
+
+                            obj.velocity( v );  
+                        } 
                     }
 
                     return {
 
-                        hard: function( delta, obj, idx, list, par ){
+                        collision: fn 
 
-                            count = 1;
-                            // with verlet physics, all we need to do is
-                            // move the object to where it should be to constrain it
-                            pos = obj.position();
-                            whd = obj.dimensions();
+                        ,hard: function( dt, obj, idx, list, par ){
 
-                            if ( whd.radius ){
-                                whd.x = whd.y = whd.z = whd.radius*2;
-                            }
-
-                            pos.x = pos.x > (upper = max.x - whd.x/2) ? 
-                                (count++) && upper : 
-                                (lower = min.x + whd.x/2) > pos.x ? 
-                                    (count++) && lower : 
-                                    pos.x;
-
-                            pos.y = pos.y > (upper = max.y - whd.y/2) ? 
-                                (count++) && upper : 
-                                (lower = min.y + whd.y/2) > pos.y ? 
-                                    (count++) && lower : 
-                                    pos.y;
-
-                            pos.z = pos.z > (upper = max.z - whd.z/2) ? 
-                                (count++) && upper : 
-                                (lower = min.z + whd.z/2) > pos.z ? 
-                                    (count++) && lower : 
-                                    pos.z;
-
-                            obj.position( pos );
-
-                            count--;
-
-                            // collision friction for every collision
-                            while(count-- && fric) fric( delta, obj, idx, list, par );
-
+                            preserveImpulse = true;
+                            fn( dt, obj, idx, list, par );
+                            preserveImpulse = false;
                         }
+                        
                     };
                 }
             }
