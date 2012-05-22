@@ -19,6 +19,15 @@ define(
 
 			,__extends__: Basic
 
+			,dimensions: function(){
+
+				return {
+					x: 0,
+					y: 0,
+					z: 0
+				};
+			}
+
 		}, 'Point');
 
 		return Point;
