@@ -16,7 +16,7 @@ define(
 
 			for(var i = 0, l = arr.length; i < l; ++i){
 
-				if ( fn( arr[i++], i ) === false ){
+				if ( fn( arr[i], i ) === false ){
 
 					return false;
 				}

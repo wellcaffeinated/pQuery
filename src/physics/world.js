@@ -203,6 +203,8 @@ define(
 					,diff = now - time
 					;
 
+				if ( !diff ) return this;
+				
 				// set some stats
 				this.FPS = 1000/diff;
 				this.nsteps = Math.ceil(diff/_.dt);
