@@ -110,7 +110,9 @@ define(
                                 
                                 if ( preserveImpulse ){
 
-                                    factor = (v2.dot(diff) - v1.dot(diff))/(len*len);
+                                    diff.normalize();
+
+                                    factor = v2.dot(diff) - v1.dot(diff);
 
                                     // if objects are moving away from each other or touching... then skip
                                     if ( factor >= 0 ) continue;

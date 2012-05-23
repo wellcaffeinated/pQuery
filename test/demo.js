@@ -117,7 +117,7 @@ require(['../src/pquery'], function(pQuery){
             sph.accelerate(0, 0.0005);
 
         })
-        .interact( pQuery.interactions.SphereCollide( 0.8 ), 'sphere' )
+        .interact( pQuery.interactions.SphereCollide( 0.1 ), 'sphere' )
         .interact( pQuery.interactions.ConstrainWithin( world, 0.3 ), 'sphere' )
         ;
 
