@@ -49,7 +49,7 @@ define(
 
                     })
                     // define some interactions
-                    .interact('soft', '.gravity', function( dt, obj ){
+                    .interact('beforeAccel', '.gravity', function( dt, obj ){
 
                         // earth gravity
                         obj.accelerate(0, 0.0005);

@@ -26,9 +26,9 @@ define(
 
 				_.interactions = {
 
-					soft: [],
-					hard: [],
-					collision: []
+					beforeAccel: [],
+					afterAccel: [],
+					afterInertia: []
 
 				};
 
@@ -178,11 +178,11 @@ define(
 
                 _.time += dt;
 
-                this.doInteractions( 'soft', dt );
+                this.doInteractions( 'beforeAccel', dt );
                 this.resolveAcceleration( dt );
-                this.doInteractions( 'collision', dt );
+                this.doInteractions( 'afterAccel', dt );
                 this.resolveInertia( dt );
-                this.doInteractions( 'hard', dt );
+                this.doInteractions( 'afterInertia', dt );
                 //this.cleanup();
 
                 return _.time;

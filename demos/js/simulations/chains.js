@@ -30,7 +30,7 @@ define(
                 this.addClass('chain');
                 this[0].removeClass('chain');
 
-                return this.interact('hard', function( dt, p, idx, pts ){
+                return this.interact('afterInertia', function( dt, p, idx, pts ){
 
                     if( idx ){
 
@@ -112,7 +112,7 @@ define(
                         self.stage.update();
                     })
                     // define some interactions
-                    .interact('soft', '.chain', function( dt, obj ){
+                    .interact('beforeAccel', '.chain', function( dt, obj ){
 
                         // earth gravity
                         obj.accelerate(0, 0.0005);

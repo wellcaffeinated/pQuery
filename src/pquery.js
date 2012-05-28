@@ -537,7 +537,7 @@ define(
 				if ( sel == null && callback == null ){
 
 					callback = types;
-					type = 'soft'; //assume soft interaction
+					type = 'beforeAccel'; //assume soft interaction
 
 				// ( types, callback )
 				} else if ( callback == null ){

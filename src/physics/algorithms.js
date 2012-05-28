@@ -18,7 +18,7 @@ define(
 
                     return {
 
-                        soft: function( dt, obj, idx, list ){
+                        beforeAccel: function( dt, obj, idx, list ){
 
                             for(i = idx+1, l = list.length; i < l; i++){
                                 
@@ -46,7 +46,7 @@ define(
 
                     return {
 
-                        soft: function( dt, obj, idx, list ){
+                        beforeAccel: function( dt, obj, idx, list ){
 
                             v.clone( obj.velocity() );
 
@@ -134,9 +134,9 @@ define(
 
                     return {
 
-                        collision: fn
+                        afterAccel: fn
 
-                        ,hard: function( dt, obj, idx, list ){
+                        ,afterInertia: function( dt, obj, idx, list ){
 
                             preserveImpulse = true;
                             fn( dt, obj, idx, list );
@@ -247,9 +247,9 @@ define(
 
                     return {
 
-                        collision: fn 
+                        afterAccel: fn 
 
-                        ,hard: function( dt, obj, idx, list, par ){
+                        ,afterInertia: function( dt, obj, idx, list, par ){
 
                             preserveImpulse = true;
                             fn( dt, obj, idx, list, par );
