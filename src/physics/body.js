@@ -2,14 +2,12 @@ define(
 	[
 		'../util/class',
 		'../util/tools',
-		'../util/callbacks',
-		'../math/vector'
+		'../util/callbacks'
 	],
 	function(
 		Class,
 		Tools,
-		Callbacks,
-		Vector
+		Callbacks
 	){
 
 		var idSeed = 'body' + (''+Math.random()).replace( /\D/g, "" )
@@ -33,8 +31,6 @@ define(
 					_.callbacks = {};
 					_.bubble = {};
 					_.data = {}; // arbitrary data storage
-
-					_.dimensions = new Vector();
 
 					var evt
 						,self = this
@@ -82,22 +78,6 @@ define(
 				,requestUniqueId: function(){
 
 					return idSeed + (lastId++);
-				}
-
-				,dimensions: function( x, y, z ){
-
-					var d = this._.dimensions;
-
-					if ( arguments.length > 0 ){
-
-						d.set(
-							( x !== undefined )? x : d.x,
-							( y !== undefined )? y : d.y,
-							( z !== undefined )? z : d.z
-						);
-					}
-
-					return d.toNative();
 				}
 
 				// get type

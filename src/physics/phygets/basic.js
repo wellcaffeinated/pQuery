@@ -36,6 +36,9 @@ define(
 				_.a = new Vector();
 				// timestep
 				_.dt = 1;
+				// dimensions of object	
+				_.dimensions = new Vector();
+
 
 				// flags inbetween integration (for verlet collision purposes)
 				_.midInt = false;
@@ -70,6 +73,22 @@ define(
 				_.pos.vadd( _.mid ).vsub( _.prev );
 
 				_.prev.clone( _.mid );
+			}
+
+			,dimensions: function( x, y, z ){
+
+				var d = this._.dimensions;
+
+				if ( arguments.length > 0 ){
+
+					d.set(
+						( x !== undefined )? x : d.x,
+						( y !== undefined )? y : d.y,
+						( z !== undefined )? z : d.z
+					);
+				}
+
+				return d.toNative();
 			}
 
 			,position: function( pos ){

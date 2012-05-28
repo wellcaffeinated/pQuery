@@ -2,12 +2,14 @@ define(
 	[
 		'../util/tools',
 		'../util/class',
-		'./body'
+		'./body',
+		'../math/vector'
 	],
 	function(
 		Tools,
 		Class,
-		Body
+		Body,
+		Vector
 	){
 
 		var World = Class({
@@ -37,6 +39,8 @@ define(
 					_.refreshChildren = true;
 				});
 
+				_.dimensions = new Vector();
+
 				// start with infinite dimensions
 				_.dimensions.set( 1/0, 1/0, 1/0 );
 
@@ -50,6 +54,22 @@ define(
 			,parent: function(){
 
 				return false;
+			}
+
+			,dimensions: function( x, y, z ){
+
+				var d = this._.dimensions;
+
+				if ( arguments.length > 0 ){
+
+					d.set(
+						( x !== undefined )? x : d.x,
+						( y !== undefined )? y : d.y,
+						( z !== undefined )? z : d.z
+					);
+				}
+
+				return d.toNative();
 			}
 
 			,registerInteraction: function( type, bodies, callback, par ){
