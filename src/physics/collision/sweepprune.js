@@ -13,15 +13,19 @@ define(
 		// return hash for a pair of objects
 		function pairHash( obj1, obj2 ){
 
-			var id1 = obj1.id();
-			var id2 = obj2.id();
+			var id1 = obj1.data('sp-id');
+			var id2 = obj2.data('sp-id');
 
 			if ( obj1 === obj2 ){
 
 				return null;
 			}
 
-			return (id1 > id2)? id1 + id2 : id2 + id1;
+			// valid for values < 2^16
+			return id1 > id2? 
+				(id1 << 16) | (id2 & 0xFFFF) : 
+				(id2 << 16) | (id1 & 0xFFFF)
+				;
 		}
 
 		var SweepPrune = Class({
@@ -29,8 +33,10 @@ define(
 			// constructor
 			SweepPrune: function(){
 
+				this.uid = 1;
+
 				this.intervalLists = {}; // stores lists of aabb projection intervals to be sorted
-				this.pairs = {}; // pairs selected as candidate collisions by broad phase
+				this.pairs = []; // pairs selected as candidate collisions by broad phase
 				
 				// init intervalLists
 				for ( var xyz in dof ){
@@ -87,6 +93,26 @@ define(
 				}
 			}
 
+			,getPair: function(obj1, obj2, doCreate){
+
+				var	hash = pairHash( obj1, obj2 );
+				var c = this.pairs[ hash ];
+
+				if ( !c ){
+
+					if ( !doCreate )
+						return null;
+
+					c = this.pairs[ hash ] = {
+						one: obj1,
+						two: obj2,
+						flag: 0
+					}
+				}
+
+				return c;
+			}
+
 			,checkOverlaps: function(){
 
 				var isX
@@ -100,7 +126,6 @@ define(
 					,j
 					,c
 					,encounters = []
-					,pairs = this.pairs
 					;
 
 				for ( var xyz in dof ){
@@ -130,22 +155,10 @@ define(
 									continue;
 								}
 
-								hash = pairHash( obj, other );
-								c = pairs[ hash ];
+								c = this.getPair( obj, other, isX );
 
-								if ( !c ){
-
-									if ( !isX )
-										continue; // doesn't overlap in all axis so continue
-
-									c = pairs[ hash ] = {
-										one: obj,
-										two: other,
-										flag: 0
-									}
-								}
-
-								c.flag = isX? 1 : c.flag + 1;
+								if ( c )
+									c.flag = isX? 1 : c.flag + 1;
 							}
 
 						} else {
@@ -156,9 +169,18 @@ define(
 						}
 					}
 				}
+			}
 
-				var set = this.candidates = [];
-				len = ( dof.z || dof.y || dof.x );
+			
+			,updateCandidates: function(){
+
+				var set = this.candidates = []
+					,pairs = this.pairs
+					,len = ( dof.z || dof.y || dof.x )
+					,c
+					,hash
+					;
+
 				// purge non-candidate collisions
 				for ( hash in pairs ){
 
@@ -167,13 +189,6 @@ define(
 						set.push( c );
 					}
 				}
-			}
-
-			
-			,updateCandidates: function(){
-
-				
-
 				
 			}
 
@@ -210,6 +225,8 @@ define(
 							obj: obj
 						}
 					});
+
+					obj.data('sp-id', this.uid++);
 
 					this.addInterval( intr );
 				}
