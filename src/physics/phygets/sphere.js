@@ -35,6 +35,17 @@ define(
 				};
 			}
 
+			,AABB: function(){
+
+				var _ = this._;
+
+				return {
+					x: _.radius,
+					y: _.radius,
+					z: _.radius
+				};
+			}
+
 		}, 'Sphere');
 
 		return Sphere;

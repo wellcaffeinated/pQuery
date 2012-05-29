@@ -537,7 +537,7 @@ define(
 				if ( sel == null && callback == null ){
 
 					callback = types;
-					type = 'beforeAccel'; //assume soft interaction
+					type = 'beforeAccel'; //assume we're applying acceleration
 
 				// ( types, callback )
 				} else if ( callback == null ){
@@ -556,7 +556,7 @@ define(
 				// don't delegate
 				if ( !sel ){
 
-					bodies = pQuery.makeArray(this);
+					bodies = pQuery.makeArray( this );
 					this.world.registerInteraction( type, bodies, callback );
 
 				// delegate (refresh when needed)

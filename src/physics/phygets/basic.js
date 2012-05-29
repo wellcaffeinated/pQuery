@@ -91,6 +91,17 @@ define(
 				return d.toNative();
 			}
 
+			// get axis-aligned bounding box for this object
+			// to be overridden
+			,AABB: function(){
+
+				return {
+					x: 0,
+					y: 0,
+					z: 0
+				};
+			}
+
 			,position: function( pos ){
 
 				var _ = this._
