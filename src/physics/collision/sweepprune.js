@@ -49,7 +49,6 @@ define(
 
 				this.sortIntervalLists();
 				this.checkOverlaps();
-				this.updateCandidates();
 			}
 
 			// simple insertion sort for each axis
@@ -125,7 +124,9 @@ define(
 					,i
 					,j
 					,c
+					,collisionFlag = ( dof.z || dof.y || dof.x )
 					,encounters = []
+					,set = this.candidates = []
 					;
 
 				for ( var xyz in dof ){
@@ -157,8 +158,15 @@ define(
 
 								c = this.getPair( obj, other, isX );
 
-								if ( c )
+								if ( c ){
+									
 									c.flag = isX? 1 : c.flag + 1;
+
+									if ( c.flag === collisionFlag ){
+
+										set.push( c );
+									}
+								}
 							}
 
 						} else {
@@ -169,27 +177,6 @@ define(
 						}
 					}
 				}
-			}
-
-			
-			,updateCandidates: function(){
-
-				var set = this.candidates = []
-					,pairs = this.pairs
-					,len = ( dof.z || dof.y || dof.x )
-					,c
-					,hash
-					;
-
-				// purge non-candidate collisions
-				for ( hash in pairs ){
-
-					if ( (c = pairs[ hash ]).flag === len ){
-
-						set.push( c );
-					}
-				}
-				
 			}
 
 			,addInterval: function( intr ){
