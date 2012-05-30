@@ -10,13 +10,10 @@ define(
 
 		var dof = {x:1, y:2}; // degrees of freedom
 
-		// return hash for a pair of objects
-		function pairHash( obj1, obj2 ){
+		// return hash for a pair of ids
+		function pairHash( id1, id2 ){
 
-			var id1 = obj1.data('sp-id');
-			var id2 = obj2.data('sp-id');
-
-			if ( obj1 === obj2 ){
+			if ( id1 === id2 ){
 
 				return null;
 			}
@@ -35,6 +32,7 @@ define(
 
 				this.uid = 1;
 
+				this.trackedObjects = [];
 				this.intervalLists = {}; // stores lists of aabb projection intervals to be sorted
 				this.pairs = []; // pairs selected as candidate collisions by broad phase
 				
@@ -47,8 +45,22 @@ define(
 
 			,broadPhase: function(){
 
+				this.updateIntervals();
 				this.sortIntervalLists();
 				this.checkOverlaps();
+			}
+
+			,narrowPhase: function( callback ) {
+
+				var list = this.candidates
+					,i
+					,l = list.length
+					;
+
+				for ( i = 0; i < l; i++ ){
+
+					callback( list[i], i, list )
+				}
 			}
 
 			// simple insertion sort for each axis
@@ -92,9 +104,9 @@ define(
 				}
 			}
 
-			,getPair: function(obj1, obj2, doCreate){
+			,getPair: function(tr1, tr2, doCreate){
 
-				var	hash = pairHash( obj1, obj2 );
+				var	hash = pairHash( tr1.id, tr2.id );
 				var c = this.pairs[ hash ];
 
 				if ( !c ){
@@ -103,8 +115,8 @@ define(
 						return null;
 
 					c = this.pairs[ hash ] = {
-						one: obj1,
-						two: obj2,
+						one: tr1.obj,
+						two: tr2.obj,
 						flag: 0
 					}
 				}
@@ -116,7 +128,7 @@ define(
 
 				var isX
 					,hash
-					,obj
+					,tracker
 					,other
 					,item
 					,list
@@ -139,7 +151,7 @@ define(
 					while( (++i) < len ){
 						
 						item = list[ i ];
-						obj = item.obj;
+						tracker = item.tracker;
 
 						if ( item.type ){
 
@@ -150,13 +162,14 @@ define(
 							while( (--j) >= 0 ){
 
 								other = encounters[j];
-								if ( other === obj ){
+
+								if ( other === tracker ){
 
 									encounters.splice(j, 1);
 									continue;
 								}
 
-								c = this.getPair( obj, other, isX );
+								c = this.getPair( tracker, other, isX );
 
 								if ( c ){
 									
@@ -173,54 +186,84 @@ define(
 
 							// is a min
 
-							encounters.push(obj);
+							encounters.push( tracker );
 						}
 					}
 				}
 			}
 
-			,addInterval: function( intr ){
+			,updateIntervals: function(){
 
-				for ( var xyz in dof ){
+				var tr
+					,intr
+					,pos
+					,vol
+					,list = this.trackedObjects
+					,i = list.length
+					;
 
-					this.intervalLists[ xyz ].push( intr.min );
-					this.intervalLists[ xyz ].push( intr.max );
+				while( (--i) >= 0 ){
+
+					tr = list[ i ];
+					intr = tr.interval;
+					pos = tr.obj.position();
+					vol = tr.obj.AABB();
+
+					intr.min.val.clone( pos ).vsub( vol );
+					intr.max.val.clone( pos ).vadd( vol );
+
 				}
 			}
 
-			,updateInterval: function( obj ){
+			// add object to list of those tracked by sweep and prune
+			,trackObject: function( obj ){
 
-				var intr = obj.data('sp-interval')
-					,pos = obj.position()
-					,vol = obj.AABB()
-					;
+				var tr = obj.data('sp-trackers');
 
-				if ( !intr ){
-
-					// create new interval
-					intr = obj.data('sp-interval', {
-
-						min: {
-							type: 0, //min
-							val: new Vector(),
-							obj: obj
-						},
-
-						max: {
-							type: 1, //max
-							val: new Vector(),
-							obj: obj
-						}
-					});
-
-					obj.data('sp-id', this.uid++);
-
-					this.addInterval( intr );
+				if ( tr && tr.indexOf( this ) !== -1 ) {
+					
+					return;
 				}
 
-				intr.min.val.clone( pos ).vsub( vol );
-				intr.max.val.clone( pos ).vadd( vol );
+				if ( !tr ){
 
+					tr = [];
+					obj.data( 'sp-trackers', tr );
+				}
+
+				// object remembers it is tracked by this
+				tr.push( this );
+
+				var tracker = {
+
+					id: this.uid++
+
+					,obj: obj
+				};
+
+				var intr = {
+
+					min: {
+						type: 0, //min
+						val: new Vector(),
+						tracker: tracker
+					},
+
+					max: {
+						type: 1, //max
+						val: new Vector(),
+						tracker: tracker
+					}
+				};
+
+				tracker.interval = intr;
+
+				this.trackedObjects.push( tracker );
+				
+				for ( var xyz in dof ){
+
+					this.intervalLists[ xyz ].push( intr.min, intr.max );
+				}
 			}
 
 			,getInteraction: function( callback ){
@@ -236,16 +279,14 @@ define(
 
 					afterInertia: function( dt, obj, idx, list, par ){
 
-						self.updateInterval( obj );
+						self.trackObject( obj );
 
 						if ( idx === list.length - 1 ){
 
 							self.broadPhase();
-
-							for ( var i = 0, cs = self.candidates, l = cs.length; i < l; i++ ){
-
-								callback( dt, cs[i], i, cs )
-							}
+							self.narrowPhase( function(pair, idx, list){
+								callback( dt, pair, idx, list );
+							});
 						}
 					}
 				};
