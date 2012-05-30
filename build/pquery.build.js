@@ -7,12 +7,11 @@
 	baseUrl: '../src',
     name: 'almond',
     include: ['pquery'],
-    out: 'pquery.min.js',
+    out: '../release/pquery.min.js',
     optimize: 'none',
 
     paths: {
-        almond: '../lib/almond',
-        'pquery.min.js': '../release/pquery.min.js'
+        almond: '../lib/almond'
     },
     
     // wrap in fake implementation of requirejs for module registration... not script loading
