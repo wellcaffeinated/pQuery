@@ -15,7 +15,6 @@ define(
 		 * http://jquery.org/license
 		 *
 		 * Date: @DATE
-		 * @license
 		 */
 		(function( jQuery ) {
 

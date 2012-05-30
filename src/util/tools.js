@@ -52,8 +52,6 @@ define(function(){
 		 * Dual licensed under the MIT or GPL Version 2 licenses.
 		 * http://jquery.org/license
 		 *
-		 * Date: @DATE
-		 * @license
 		 */
 			// [[Class]] -> type pairs
 		var	class2type = {}

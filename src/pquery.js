@@ -37,8 +37,6 @@ define(
 		 * Dual licensed under the MIT or GPL Version 2 licenses.
 		 * http://jquery.org/license
 		 *
-		 * Date: @DATE
-		 * @license
 		 */
 		var pQuery = function( selector, context ){
 
