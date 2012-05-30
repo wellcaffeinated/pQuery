@@ -1,3 +1,13 @@
+/*!
+ * pQuery physics library v@VERSION
+ * https://github.com/wellcaffeinated/pQuery
+ * 
+ * Copyright 2012, Jasper Palfree
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * 
+ * Date: @DATE
+ * @license
+ */
 define(
 	[
 		'./util/slick.parser',
@@ -19,6 +29,17 @@ define(
 		World,
 		Phyget
 	){
+		/*!
+		 * Contains modified parts of jQuery JavaScript Library v1.7.2
+		 * http://jquery.com/
+		 *
+		 * Copyright 2011, John Resig
+		 * Dual licensed under the MIT or GPL Version 2 licenses.
+		 * http://jquery.org/license
+		 *
+		 * Date: @DATE
+		 * @license
+		 */
 		var pQuery = function( selector, context ){
 
 				return new pQuery.fn.init( selector, context, rootpQuery );

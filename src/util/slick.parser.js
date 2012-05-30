@@ -6,6 +6,10 @@ provides: Slick.Parser
 ...
 */
 
+/*!
+ * https://github.com/subtleGradient/slick
+ */
+
 define(function(){
 	
 var parsed,
