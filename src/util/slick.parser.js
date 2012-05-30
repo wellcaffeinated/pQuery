@@ -7,6 +7,7 @@ provides: Slick.Parser
 */
 
 /*!
+ * Contains the slick.parser library
  * https://github.com/subtleGradient/slick
  */
 

@@ -1,12 +1,9 @@
-/*!
+/*
  * pQuery physics library v@VERSION
  * https://github.com/wellcaffeinated/pQuery
  * 
  * Copyright 2012, Jasper Palfree
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * 
- * Date: @DATE
- * @license
  */
 define(function(){
 
@@ -44,7 +41,7 @@ define(function(){
 		    return -1;
 		};
 
-		/*!
+		/*
 		 * Contains modified parts of jQuery JavaScript Library v1.7.2
 		 * http://jquery.com/
 		 *

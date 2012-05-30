@@ -1,3 +1,10 @@
+/*
+ * pQuery physics library v@VERSION
+ * https://github.com/wellcaffeinated/pQuery
+ * 
+ * Copyright 2012, Jasper Palfree
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ */
 define(
     [
         './tools'
@@ -6,7 +13,7 @@ define(
         Tools
     ){
 
-        /*!
+        /*
          * Based on work by Florian Bosh @pyalot http://codeflow.org
          * From microphysics.js
          * https://github.com/jeromeetienne/microphysics.js

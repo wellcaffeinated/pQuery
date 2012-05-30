@@ -1,13 +1,3 @@
-/*!
- * pQuery physics library v@VERSION
- * https://github.com/wellcaffeinated/pQuery
- * 
- * Copyright 2012, Jasper Palfree
- * Dual licensed under the MIT or GPL Version 2 licenses.
- * 
- * Date: @DATE
- * @license
- */
 ;(function(window, document, undefined){
     
 /** A very lightweight implementation of CommonJS Asynchronous Module Definition 
