@@ -1,29 +1,24 @@
 /* 
  * build profile for pQuery
  * All config options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
- * r.js -o ./pquery.build.js 
+ * node r.js -o ./pquery.build.js 
  */
 ({
-	appDir: '../src',
-    baseUrl: './',
-    dir: '../build/pquery-built',
-    optimize: 'uglify',
-    //preserveLicenseComments: false,
+	baseUrl: '../src',
+    name: 'almond',
+    include: ['pquery'],
+    out: 'pquery.min.js',
+    optimize: 'none',
 
+    paths: {
+        almond: '../lib/almond',
+        'pquery.min.js': '../release/pquery.min.js'
+    },
+    
     // wrap in fake implementation of requirejs for module registration... not script loading
     wrap: {
         startFile: 'wrap/start.frag',
         endFile: 'wrap/end.frag'
-    },
-
-    modules: [
-    	{
-    		name: 'pquery',
-    		include: [
-    			'pquery'
-    		]
-    	}
-    ]
-
+    }
     
 })
