@@ -8,7 +8,7 @@
     name: 'almond',
     include: ['pquery'],
     out: '../release/pquery.min.js',
-    optimize: 'none',
+    //optimize: 'none',
 
     paths: {
         almond: '../lib/almond'
@@ -18,6 +18,32 @@
     wrap: {
         startFile: 'wrap/start.frag',
         endFile: 'wrap/end.frag'
-    }
+    },
+
+    onBuildWrite: (function(){
+
+        var fs = require.nodeRequire('fs');
+        var ver = fs.readFileSync('../version.txt');
+        var tags = {
+            '@VERSION': ver,
+            '@DATE': new Date().toDateString()
+        };
+        var search = '';
+        for(var tag in tags){
+            search += '|'+tag;
+        }
+
+        function cb( match ){
+
+            return tags[ match ];
+        }
+
+        search = new RegExp(search.substr(1), 'ig');
+
+        return function (moduleName, path, contents) {
+
+            return contents.replace( search, cb );
+        }
+    })()
     
 })
