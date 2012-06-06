@@ -109,14 +109,15 @@ define(
 				};
 			}
 
-			,position: function( pos ){
+			,position: function( pos, y, z ){
 
 				var _ = this._
 					,type
 					,prev = false
 					;
 
-				if ( arguments.length > 0 ){
+				// this is much faster than arguments.length checks
+				if ( pos !== undefined || y !== undefined || z !== undefined ){
 
 					type = typeof pos;
 
@@ -132,8 +133,8 @@ define(
 
 						_.pos.set(
 							( pos !== undefined )? pos : _.pos.x,
-							( arguments[1] !== undefined )? arguments[1] : _.pos.y,
-							( arguments[2] !== undefined )? arguments[2] : _.pos.z
+							( y !== undefined )? y : _.pos.y,
+							( z !== undefined )? z : _.pos.z
 						);
 
 					}
@@ -142,14 +143,15 @@ define(
 				return _.pos.toNative();
 			}
 
-			,velocity: function( vel ){
+			,velocity: function( vel, y, z ){
 
 				var _ = this._
 					,pos = _.pos
 					,type
 					;
 
-				if ( arguments.length > 0 ){
+				// this is much faster than arguments.length checks
+				if ( vel !== undefined || y !== undefined || z !== undefined ){
 
 					type = typeof vel;
 
@@ -171,8 +173,8 @@ define(
 						_.prev.clone(_.mid).vsub(
 						    _.v.set(
 								( vel !== undefined )? vel : 0,
-								( arguments[1] !== undefined )? arguments[1] : 0,
-								( arguments[2] !== undefined )? arguments[2] : 0
+								( y !== undefined )? y : 0,
+								( z !== undefined )? z : 0
 							).mult( _.dt )
 						);
 
@@ -184,13 +186,14 @@ define(
 				return _.v.clone(pos).vsub(_.prev).mult( 1/_.dt ).toNative();	
 			}
 
-			,accelerate: function( accel ){
+			,accelerate: function( accel, y, z ){
 
 				var _ = this._
 					,type
 					;
 
-				if ( arguments.length > 0 ){
+				// this is much faster than arguments.length checks
+				if ( accel !== undefined || y !== undefined || z !== undefined ){
 
 					type = typeof accel;
 
@@ -206,8 +209,8 @@ define(
 
 						_.a.add(
 							( accel !== undefined )? accel : 0,
-							( arguments[1] !== undefined )? arguments[1] : 0,
-							( arguments[2] !== undefined )? arguments[2] : 0
+							( y !== undefined )? y : 0,
+							( z !== undefined )? z : 0
 						);
 
 					}
