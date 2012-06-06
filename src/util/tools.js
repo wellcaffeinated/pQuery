@@ -141,7 +141,15 @@ define(function(){
 				}
 
 				,isNumericQuick: function( obj ){
-					return obj == 0 || 1%(obj) >= 0;
+					// Method by Jasper Palfree
+					// http://jsfiddle.net/wellcaffeinated/nd5h9/
+					return obj === 0 || 
+					 	obj === '0' || 
+					 	(
+					 		(obj && obj !== true)? 
+					 		obj>>>0 != 0 || (obj*=obj)*obj < obj: 
+					 		false
+					 	);
 				}
 
 				,type: function( obj ) {
