@@ -145,6 +145,7 @@ define(
 					,c
 					,collisionFlag = ( dof.z || dof.y || dof.x )
 					,encounters = []
+					,enclen = 0
 					,set = this.candidates = []
 					;
 
@@ -155,7 +156,7 @@ define(
 					i = -1;
 					len = list.length;
 
-					while( (++i) < len ){
+					while ( (++i) < len ){
 						
 						item = list[ i ];
 						tracker = item.tracker;
@@ -164,15 +165,25 @@ define(
 
 							// is a max
 
-							j = encounters.length;
+							j = enclen;
 
-							while( (--j) >= 0 ){
+							while ( (--j) >= 0 ){
 
 								other = encounters[j];
 
 								if ( other === tracker ){
 
-									encounters.splice(j, 1);
+									// faster than .splice()
+									if ( j < enclen-1 ) {
+										
+										encounters[ j ] = encounters.pop();
+
+									} else {
+
+										encounters.pop()
+									}
+
+									enclen--;
 									continue;
 								}
 
@@ -193,7 +204,7 @@ define(
 
 							// is a min
 
-							encounters.push( tracker );
+							enclen = encounters.push( tracker );
 						}
 					}
 				}
