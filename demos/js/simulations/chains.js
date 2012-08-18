@@ -11,10 +11,12 @@
  */
 define(
     [
-        '../../../src/pquery'
+        '../../../src/pquery',
+        'kinetic'
     ], 
     function(
-        pQuery
+        pQuery,
+        Kinetic
     ){
         // new world to work with
         pQuery = pQuery.sub();
@@ -26,13 +28,6 @@ define(
 
             if ( len === undefined ) return this;
             if ( len <= 0 ){
-
-                var c = new Shape();
-                c.x = this.position().x;
-                c.y = this.position().y;
-                c.graphics.beginFill(Graphics.getRGB(255,233,233,1));
-                c.graphics.drawCircle(0,0,4);
-                this[0].data('view', c);
 
                 var p1 = pQuery.Vector();
                 var p2 = pQuery.Vector();
@@ -72,29 +67,24 @@ define(
             var x = pos.x + Math.random()*5
             pt.position( x , pos.y ).velocity(0, 0);
 
-            var c = new Shape();
-            c.x = x;
-            c.y = pos.y;
-            c.graphics.beginFill(Graphics.getRGB(255,233,233,1));
-            c.graphics.drawCircle(0,0,4);
-            pt.data('view', c);
-            
             return this.add( pt ).chain( len - 1 );
         };
     
-        function Simulation( mediator, canvas ){
+        function Simulation( mediator, data ){
 
             if ( !( this instanceof Simulation ) ) return new Simulation( mediator, ctx );
 
             var self = this;
-            this.ctx = canvas.getContext('2d');
 
             this.mediator = mediator;
-            this.stage = new Stage( canvas );
+            this.layer = data.layer;
+            this.group = data.group;
 
-            this.bounds = new Rectangle();
-            this.bounds.width = canvas.width;
-            this.bounds.height = canvas.height;
+            this.bounds = {
+
+                width: data.layer.getContext().canvas.width,
+                height: data.layer.getContext().canvas.height
+            };
 
             this.initWorld();
             this.initBodies();
@@ -120,7 +110,7 @@ define(
                     .on('step', function(){
 
                         self.updateViews();
-                        self.stage.update();
+                        self.layer.draw();
                     })
                     // define some interactions
                     .interact('beforeAccel', '.chain', function( dt, obj ){
@@ -147,26 +137,43 @@ define(
 
             ,initBodies: function(){
 
-                var stage = this.stage;
+                var group = this.group;
 
                 // create some spheres
                 var chains = [];
-                var numChains = 30;
+                var numChains = 20;
                 var dx = this.bounds.width/numChains;
+                var view;
+                var chain;
+                
+                while(numChains--){
 
-                while(numChains--)
+                    var points = [];
+
                     chains.push(
-                        pQuery('<point>')
+                        chain = pQuery('<point>')
                             .position(numChains*dx+dx/2, 20)
                             .velocity(0, 0)
                             .chain(10)
                             .each(function(){
-
-                                var c = this.data('view');
-                                stage.addChild(c);
+                                points.push(this.position());
                             })
                             .appendTo(this.world)
                     );
+
+                    view = new Kinetic.Line({
+                        x: 0,
+                        y: 0,
+                        stroke: 'white',
+                        strokeWidth: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        points: points
+                    });
+                    
+                    chain.data('view', view);
+                    group.add( view );
+                }
 
                 this.bodies = chains;
             }
@@ -183,36 +190,23 @@ define(
                 for ( var i = 0, l = bodies.length; i < l; ++i ){
                     
                     // connect the dots
-                    var last = null;
+                    var points = []
+                        ,view = bodies[i].data('view')
+                        ;
 
                     bodies[i].each(function(){
 
                         var link = this;
                         var pos = link.position();
-                        var view = link.data('view');
-
-                        if ( view ){
-
-                            view.x = pos.x;
-                            view.y = pos.y;
-
-                            if (last){
-
-                                last = view.globalToLocal(last.x, last.y);
-
-                                view.graphics
-                                    .clear()
-                                    .beginStroke("rgba(255,255,255,1)")
-                                    .moveTo(0, 0)
-                                    .lineTo(last.x, last.y)
-                                    .endStroke()
-                                    .draw(self.ctx);
-                            }
-                        }
-
-                        last = pos;
+                        points.push(pos);
 
                     });
+
+                    if (view){
+
+                        view.setPoints(points);
+                    }
+
                 }
             }
 

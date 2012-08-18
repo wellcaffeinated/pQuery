@@ -10,7 +10,22 @@
  * @license
  */
 require.config({
-	baseUrl: 'js/'
+
+	baseUrl: 'js/',
+
+	shim: {
+		'../lib/kinetic': {
+			deps: [''],
+			exports: 'Kinetic'
+		}
+	},
+
+	map: {
+		'*': {
+			'kinetic': '../lib/kinetic'
+		}
+	}
+
 });
 
 require(

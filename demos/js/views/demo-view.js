@@ -11,24 +11,15 @@
  */
 define(
 	[
-		'jquery'
+		'jquery',
+		'kinetic'
 	],
 	function(
-		$
+		$,
+		Kinetic
 	){
 
-		//check and see if the canvas element is supported in
-	    //the current browser
-	    //http://diveintohtml5.org/detect.html#canvas
-	    if(!(!!document.createElement('canvas').getContext))
-	    {
-	        var wrapper = $('#canvasWrap');
-	        wrapper.html('Your browser does not appear to support the HTML5 Canvas element');
-	        throw 'Canvas Not Supported';
-	        return;
-	    }
-
-		var CanvasCache = {};
+		var Cache = {};
 		var current;
 
 		function View( mediator ){
@@ -39,7 +30,22 @@ define(
 
 			var ss = $('#stopstart');
 
-		    // set up pause button
+			this.bounds = {
+                width: 500,
+                height: 500
+            };
+
+            this.stage = new Kinetic.Stage({
+              container: 'canvasWrap',
+              width: this.bounds.width,
+              height: this.bounds.height
+            });
+
+            this.layer = new Kinetic.Layer();
+
+            this.stage.add(this.layer);
+
+            // set up pause button
 		    ss.on('click', function(e){
 
 		    	e.preventDefault();
@@ -76,20 +82,23 @@ define(
 
 			changeCanvas: function( id ){
 
-				var canvas = CanvasCache[id];
+				var group = Cache[id];
 
-				if ( !canvas ){
+				if ( !group ){
 
-					canvas = CanvasCache[id] = $('<canvas width="500" height="500"></canvas>');
-					canvas.appendTo('#canvasWrap');
+					group = Cache[id] = new Kinetic.Group();
+					this.layer.add(group);
 
 				}
 
-				if(current) CanvasCache[current].hide();
+				if(current) Cache[current].hide();
+				group.show();
 
 				current = id;
-				canvas.show();//appendTo('#canvasWrap');
-				this.mediator.publish( 'demoView/canvasReady', canvas[0], id );
+				this.mediator.publish( 'demoView/canvasReady', {
+					group: group,
+					layer: this.layer
+				}, id );
 			}
 		};
 

@@ -11,26 +11,31 @@
  */
 define(
     [
-        '../../../src/pquery'
+        '../../../src/pquery',
+        'kinetic'
     ], 
     function(
-        pQuery
+        pQuery,
+        Kinetic
     ){
         // new world to work with
         pQuery = pQuery.sub();
     
-        function Simulation( mediator, canvas ){
+        function Simulation( mediator, data ){
 
             if ( !( this instanceof Simulation ) ) return new Simulation( mediator, ctx );
 
             var self = this;
 
             this.mediator = mediator;
-            this.stage = new Stage( canvas );
 
-            this.bounds = new Rectangle();
-            this.bounds.width = canvas.width;
-            this.bounds.height = canvas.height;
+            this.layer = data.layer;
+            this.bounds = {
+
+                width: data.layer.getContext().canvas.width,
+                height: data.layer.getContext().canvas.height
+            };
+            this.group = data.group;
 
             this.initWorld();
             this.initBodies();
@@ -56,7 +61,7 @@ define(
                     .on('step', function(){
 
                         self.updateViews();
-                        self.stage.update();
+                        self.layer.draw();
 
                     })
                     // define some interactions
@@ -86,61 +91,82 @@ define(
 
             ,initBodies: function(){
 
-                var stage = this.stage;
-
-                // helper to create and return a circle in canvas
-                function canvasCircle(x, y, r){
-
-                    var c = new Shape();
-                    c.x = x;
-                    c.y = y;
-                    c.graphics.beginFill(Graphics.getRGB(255,200,200,1));
-                    c.graphics.drawCircle(0,0,r);
-                    stage.addChild(c);
-
-                    return c;
-                }
-
+                var self = this;
+                var group = this.group;
                 var spheres = pQuery(null);
 
                 // create some spheres
-                while(spheres.length < 100){
+                var shape = new Kinetic.Circle({
+                    x: 10,
+                    y: 10,
+                    radius: 9,
+                    fill: "red",
+                    stroke: "black",
+                    strokeWidth: 1
+                });
 
-                    var x = Math.random() * (500-50) + 25
-                        ,y = Math.random() * (500-50) + 25
-                        ,r = Math.random() * 20 + 5
-                        ;
+                group.add(shape);
 
-                    var collides = false;
-                    for(var i = 0, l = spheres.length; i < l; i++){
-                            var other = spheres[i];
-                            var pos = pQuery.Vector(x,y);
-                            pos.vsub(other.position());
-                            
-                            if(pos.norm() < other.dimensions().radius + r){
+                shape.toImage({
+                    // define the size of the new image object
+                    width: 20,
+                    height: 20,
+                    callback: function(img) {
+                        // cache the image as a Kinetic.Image shape
+                        
+                        while(spheres.length < 100){
+
+                            var x = Math.random() * (500-50) + 25
+                                ,y = Math.random() * (500-50) + 25
+                                ,r = 10
+                                ,image
+                                ;
+
+                            var collides = false;
+                            for(var i = 0, l = spheres.length; i < l; i++){
+                                var other = spheres[i];
+                                var pos = pQuery.Vector(x,y);
+                                pos.vsub(other.position());
+                                
+                                if(pos.norm() < other.dimensions().radius + r){
                                     collides = true;
                                     break;
+                                }
                             }
+
+                            if(!collides){
+
+                                image = new Kinetic.Image({
+                                    image: img,
+                                    x: x,
+                                    y: y,
+                                    offset: 10
+                                });
+
+                                group.add(image);
+
+                                spheres = spheres.add(
+                                    pQuery( '<sphere>' )
+                                        .data( 'view', image )
+                                        .dimensions( r )
+                                        .position( x, y )
+                                        .velocity( 0, 0 )
+                                        .addClass( 'gravity rigid' )
+                                );
+                            }
+                        }
+
+                        // other fun things
+                        // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
+                        // spheres.interact( pQuery.interactions.Drag( 1/10000 ) );
+
+                        // put spheres into world
+                        self.bodies = spheres.appendTo(self.world);
                     }
+                });
 
-                    if(!collides){
-                        spheres = spheres.add(
-                            pQuery( '<sphere>' )
-                                .data( 'view', canvasCircle(x,y,r) )
-                                .dimensions( r )
-                                .position( x, y )
-                                .velocity( 0, 0 )
-                                .addClass( 'gravity rigid' )
-                        );
-                    }
-                }
+                shape.hide();
 
-                // other fun things
-                // spheres.interact( pQuery.interactions.NewtonianGravity( 1 ) );
-                // spheres.interact( pQuery.interactions.Drag( 1/10000 ) );
-
-                // put spheres into world
-                this.bodies = spheres.appendTo(this.world);
             }
 
             ,updateViews: function(){
@@ -159,8 +185,8 @@ define(
                     if (view){
 
                         pos = obj.position();
-                        view.x = pos.x;
-                        view.y = pos.y;
+                        view.setX( pos.x );
+                        view.setY( pos.y );
 
                     }
                 }
