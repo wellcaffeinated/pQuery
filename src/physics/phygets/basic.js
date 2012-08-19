@@ -23,7 +23,7 @@ define(
 				
 			_type: 'basic'
 
-			,_events: Body.prototype._events.concat(['physics.modified'])
+			,_events: Body.prototype._events.concat(['physics.modified', 'collide'])
 			
 			,Basic: function(){
 
@@ -227,6 +227,11 @@ define(
 				}
 
 				return this;
+			}
+
+			,collisionNotify: function( other ){
+
+				this._fire( 'collide', other );
 			}
 
 			,timeStep: function( dt ){

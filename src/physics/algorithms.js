@@ -160,6 +160,9 @@ define(
 
                                     obj.velocity( v1 );
                                     other.velocity( v2 );
+
+                                    obj.collisionNotify( other );
+                                    other.collisionNotify( obj );
                                 }
                             }
                         }
@@ -189,8 +192,11 @@ define(
                         ,lower
                         ,count
                         ,fric
+                        ,collide
                         ,preserveImpulse = false
                         ;
+
+                    boundsOrParent = boundsOrParent.pquery? boundsOrParent[0] : boundsOrParent;
 
                     if ( typeof boundsOrParent.dimensions === 'function' ){
 
@@ -226,6 +232,8 @@ define(
 
                     function fn( dt, obj, idx, list, par ){
 
+                        collide = false;
+
                         pos.clone( obj.position() );
                         whd = obj.dimensions();
 
@@ -247,16 +255,19 @@ define(
                             if ( pos.x > (max.x - whd.x) || pos.x < (min.x + whd.x) ){
 
                                 v.x = (energyLoss-1) * v.x;
+                                collide = true;
                             }
 
                             if ( pos.y > (max.y - whd.y) || pos.y < (min.y + whd.y) ){
 
                                 v.y = (energyLoss-1) * v.y;
+                                collide = true;
                             }
 
                             if ( pos.z > (max.z - whd.z) || pos.z < (min.z + whd.z) ){
 
                                 v.z = (energyLoss-1) * v.z;
+                                collide = true;
                             }
                         }
 
@@ -275,7 +286,15 @@ define(
                         if ( preserveImpulse ){
 
                             obj.velocity( v );  
-                        } 
+                        }
+
+                        if ( collide ){
+                            
+                            obj.collisionNotify( boundsOrParent );
+
+                            if ( boundsOrParent.collisionNotify )
+                                boundsOrParent.collisionNotify( obj );
+                        }
                     }
 
                     return {
