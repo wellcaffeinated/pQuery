@@ -94,11 +94,6 @@ define(
 					return this._type;
 				}
 
-				,attr: function( key, val ){
-
-					return val? (this._.attr[ key ] = val) : this._.attr[ key ];
-				}
-
 				// get or set id
 				,id: function( val ) {
 					
@@ -433,9 +428,14 @@ define(
 					return false;
 				}
 
+				,attr: function( key, val ){
+
+					return val !== undefined? (this._.attr[ key ] = val) : this._.attr[ key ];
+				}
+
 				,data: function( hash, val ){
 
-					return val? (this._.data[ hash ] = val) : this._.data[ hash ];
+					return val !== undefined? (this._.data[ hash ] = val) : this._.data[ hash ];
 				}
 
 			}, 'Body')

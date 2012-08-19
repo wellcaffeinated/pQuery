@@ -763,7 +763,7 @@ define(
 
 			,data: function( hash, val ){
 
-				if ( !val ){
+				if ( val === undefined ){
 
 					if ( !this[0] ) return null;
 
@@ -780,7 +780,7 @@ define(
 
 			,attr: function( key, val ){
 
-				if ( !val ){
+				if ( val === undefined ){
 
 					if ( !this[0] ) return null;
 
