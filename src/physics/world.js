@@ -222,6 +222,7 @@ define(
 				
 				if ( this.paused ){
 
+					this._.time = false;
 					return this;
 				}
 
@@ -252,7 +253,6 @@ define(
             ,pause: function(){
 
             	this.paused = true;
-            	this._.time = false;
             	return this;
             }
 
