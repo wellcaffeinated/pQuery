@@ -15,7 +15,6 @@ require.config({
 
 	shim: {
 		'../lib/kinetic': {
-			deps: [''],
 			exports: 'Kinetic'
 		}
 	},

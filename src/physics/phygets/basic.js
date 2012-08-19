@@ -59,6 +59,8 @@ define(
 
 				var _ = this._;
 
+				if (_.attr['fixed']) return;
+
 				_.midInt = true;
 
 				_.mid.clone(_.pos);
@@ -74,6 +76,8 @@ define(
 				// Verlet
 				// this method alows modifications to pos in interim to apply constraints
 				var _ = this._;
+
+				if (_.attr['fixed']) return;
 
 				_.midInt = false;
 
@@ -148,7 +152,10 @@ define(
 				var _ = this._
 					,pos = _.pos
 					,type
+					,isfixed = _.attr['fixed']
 					;
+
+				if ( isfixed ) return _.v.zero().toNative();
 
 				// this is much faster than arguments.length checks
 				if ( vel !== undefined || y !== undefined || z !== undefined ){
@@ -190,7 +197,10 @@ define(
 
 				var _ = this._
 					,type
+					,isfixed = _.attr['fixed']
 					;
+
+				if ( isfixed ) return _.a.zero().toNative();
 
 				// this is much faster than arguments.length checks
 				if ( accel !== undefined || y !== undefined || z !== undefined ){

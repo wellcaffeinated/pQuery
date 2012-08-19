@@ -79,12 +79,15 @@ define(
                         ,v2 = new Vector()
                         ,other
                         ,factor
+                        ,fixed
                         ,preserveImpulse = false
                         ;
 
                     friction = Math.max(Math.min( friction , 1 ), 0);
 
                     function fn( dt, obj, idx, list ){
+
+                        if ( obj.attr('fixed') ) return;
 
                         pos1.clone( obj.position() );
                         r = obj.dimensions().radius;
@@ -93,6 +96,7 @@ define(
                         for ( i = idx+1, l = list.length; i < l; i++ ){
 
                             other = list[i];
+                            fixed = other.attr('fixed');
 
                             diff.clone( pos2.clone( other.position() ) );
                             diff.vsub( pos1 );
@@ -102,7 +106,7 @@ define(
                             
                             if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
 
-                                factor = 0.5*(len-target)/len;
+                                factor = ( fixed ? 1 : 0.5 )*(len-target)/len;
 
                                 if ( preserveImpulse ){
 
@@ -112,8 +116,11 @@ define(
 
                                 // move the spheres away from each other
                                 // by half the conflicting length
-                                other.position( pos2.vsub( diff.mult(factor) ) );
-                                obj.position( pos1.vadd(diff) );
+                                obj.position( pos1.vadd( diff.mult(factor) ) );
+                                
+                                if (!fixed){
+                                    other.position( pos2.vsub( diff ) );
+                                }
                                 
                                 if ( preserveImpulse ){
 
@@ -123,6 +130,12 @@ define(
 
                                     // if objects are moving away from each other or touching... then skip
                                     if ( factor >= 0 ) continue;
+
+                                    if ( fixed ){
+
+                                        obj.velocity( v1.mult(-1) );
+                                        continue;
+                                    }
 
                                     // used to find new velocity in direction along intersection axis
                                     // with restitution coefficient handling

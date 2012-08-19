@@ -37,6 +37,7 @@ define(
 					_.children = {};
 					_.callbacks = {};
 					_.bubble = {};
+					_.attr = {};
 					_.data = {}; // arbitrary data storage
 
 					var evt
@@ -91,6 +92,11 @@ define(
 				,type: function(){
 
 					return this._type;
+				}
+
+				,attr: function( key, val ){
+
+					return val? (this._.attr[ key ] = val) : this._.attr[ key ];
 				}
 
 				// get or set id
