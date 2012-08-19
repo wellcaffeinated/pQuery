@@ -777,6 +777,23 @@ define(
 
 				return this;
 			}
+
+			,attr: function( key, val ){
+
+				if ( !val ){
+
+					if ( !this[0] ) return null;
+
+					return this[0].attr( key );
+				}
+
+				for ( var i = 0, l = this.length; i < l; ++i ){
+
+					this[ i ].attr( key, val );
+				}
+
+				return this;
+			}
 		});
 
 		// getters

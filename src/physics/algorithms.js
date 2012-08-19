@@ -79,7 +79,8 @@ define(
                         ,v2 = new Vector()
                         ,other
                         ,factor
-                        ,fixed
+                        ,fixed1
+                        ,fixed2
                         ,preserveImpulse = false
                         ;
 
@@ -87,16 +88,17 @@ define(
 
                     function fn( dt, obj, idx, list ){
 
-                        if ( obj.attr('fixed') ) return;
-
                         pos1.clone( obj.position() );
+                        fixed1 = obj.attr('fixed');
                         r = obj.dimensions().radius;
 
                         // each other
                         for ( i = idx+1, l = list.length; i < l; i++ ){
 
                             other = list[i];
-                            fixed = other.attr('fixed');
+                            fixed2 = other.attr('fixed');
+
+                            if (fixed1 && fixed2) continue;
 
                             diff.clone( pos2.clone( other.position() ) );
                             diff.vsub( pos1 );
@@ -106,7 +108,7 @@ define(
                             
                             if ( diff.x < target && diff.y < target && (len = diff.norm()) < target ){ 
 
-                                factor = ( fixed ? 1 : 0.5 )*(len-target)/len;
+                                factor = ( fixed1 || fixed2 ? 1 : 0.5 )*(len-target)/len;
 
                                 if ( preserveImpulse ){
 
@@ -116,9 +118,14 @@ define(
 
                                 // move the spheres away from each other
                                 // by half the conflicting length
-                                obj.position( pos1.vadd( diff.mult(factor) ) );
+                                // ... if one is fixed... the full length
+                                diff.mult(factor);
+
+                                if (!fixed1){
+                                    obj.position( pos1.vadd( diff ) );
+                                }
                                 
-                                if (!fixed){
+                                if (!fixed2){
                                     other.position( pos2.vsub( diff ) );
                                 }
                                 
@@ -131,16 +138,22 @@ define(
                                     // if objects are moving away from each other or touching... then skip
                                     if ( factor >= 0 ) continue;
 
-                                    if ( fixed ){
-
-                                        obj.velocity( v1.mult(-1) );
-                                        continue;
-                                    }
-
                                     // used to find new velocity in direction along intersection axis
                                     // with restitution coefficient handling
                                     // proj v2-v1 onto axis then multiply by coeff of restitution correction
                                     diff.mult( factor * (1 - 0.5*friction) );
+
+                                    if ( fixed2 ){
+
+                                        obj.velocity( v1.vadd( diff.mult(2) ) );
+                                        continue;
+                                    }
+
+                                    if ( fixed1 ){
+
+                                        other.velocity( v2.vsub( diff.mult(2) ) );
+                                        continue;
+                                    }
 
                                     v1.vadd( diff );
                                     v2.vsub( diff );
