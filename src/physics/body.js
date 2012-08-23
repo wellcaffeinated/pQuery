@@ -61,7 +61,7 @@ define(
 
 				,_fire: function( evt, args ){
 					
-					this._.callbacks[ evt ].fire( args );
+					this._.callbacks[ evt ].fireWith( this, args );
 					return this;
 				}
 

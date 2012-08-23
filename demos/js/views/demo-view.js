@@ -41,10 +41,6 @@ define(
               height: this.bounds.height
             });
 
-            this.layer = new Kinetic.Layer();
-
-            this.stage.add(this.layer);
-
             // set up pause button
 		    ss.on('click', function(e){
 
@@ -82,22 +78,18 @@ define(
 
 			changeCanvas: function( id ){
 
-				var group = Cache[id];
+				var layer = Cache[id];
 
-				if ( !group ){
+				if ( !layer ){
 
-					group = Cache[id] = new Kinetic.Group();
-					this.layer.add(group);
-
+					layer = Cache[id] = new Kinetic.Layer();
 				}
 
-				if(current) Cache[current].hide();
-				group.show();
+				this.stage.add(layer);
 
 				current = id;
 				this.mediator.publish( 'demoView/canvasReady', {
-					group: group,
-					layer: this.layer
+					layer: layer
 				}, id );
 			}
 		};

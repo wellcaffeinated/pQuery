@@ -35,10 +35,12 @@ define(
                 width: data.layer.getContext().canvas.width,
                 height: data.layer.getContext().canvas.height
             };
-            this.group = data.group;
+            this.group = new Kinetic.Group();
+            this.layer.add(this.group);
 
             this.initWorld();
             this.initBodies();
+            this.layer.draw();
 
             // start the timer (in case it hasn't started already)
             pQuery.ticker.start();

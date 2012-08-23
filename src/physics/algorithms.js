@@ -186,7 +186,7 @@ define(
                     var pos = new Vector()
                         ,v = new Vector()
                         ,min
-                        ,max
+                        ,max = new Vector()
                         ,whd
                         ,upper
                         ,lower
@@ -206,12 +206,12 @@ define(
                         }
 
                         min = min || {x:0, y:0, z:0};
-                        whd = max = boundsOrParent.dimensions();
+                        whd = boundsOrParent.dimensions();
 
                     } else if ( typeof boundsOrParent === 'object' ) {
 
-                        min = boundsOrParent;
-                        whd = boundsOrParent;
+                        min = boundsOrParent.min;
+                        whd = boundsOrParent.max;
 
                     } else {
 

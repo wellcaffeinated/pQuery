@@ -78,7 +78,8 @@ define(
 
             this.mediator = mediator;
             this.layer = data.layer;
-            this.group = data.group;
+            this.group = new Kinetic.Group();
+            this.layer.add(this.group);
 
             this.bounds = {
 
@@ -88,6 +89,7 @@ define(
 
             this.initWorld();
             this.initBodies();
+            this.layer.draw();
 
             // start the timer (in case it hasn't started already)
             pQuery.ticker.start();

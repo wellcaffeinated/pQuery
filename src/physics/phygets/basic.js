@@ -231,7 +231,7 @@ define(
 
 			,collisionNotify: function( other ){
 
-				this._fire( 'collide', other );
+				this._fire( 'collide', [ other ] );
 			}
 
 			,timeStep: function( dt ){

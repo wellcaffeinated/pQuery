@@ -942,25 +942,46 @@ define(
 		});
 
 		// events
-		pQuery.fn.extend({
+		!function(){
 
-			// TODO improve
-			on: function( evt, callback ){
+			var proxyCache = {};
 
-				var i
-					,el
-					;
+			pQuery.fn.extend({
 
-				for ( var i = this.length - 1; i > -1; i-- ){
+				// TODO improve
+				on: function( evt, callback ){
 
-					el = this[i];
+					var i
+						,el
+						;
 
-					el.subscribe( evt, pQuery.proxy( callback, el ) );
+					for ( var i = this.length - 1; i > -1; i-- ){
+
+						el = this[i];
+
+						el.subscribe( evt, callback );
+					}
+
+					return this;
 				}
 
-				return this;
-			}
-		});
+				,off: function( evt, callback ){
+
+					var i
+						,el
+						;
+
+					for ( var i = this.length - 1; i > -1; i-- ){
+
+						el = this[i];
+
+						el.unsubscribe( evt, callback );
+					}
+				
+					return this;
+				}
+			});
+		}();
 
 		return pQuery;
 	}
