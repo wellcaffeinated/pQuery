@@ -1,8 +1,9 @@
-define(function( win ){
+define(function(){
 	
-		var API = {}
-			,win = window
-			;
+		var API = {
+			requestAnimationFrame: window.requestAnimationFrame,
+			cancelAnimationFrame: window.cancelAnimationFrame
+		};
 			
 		/*
 		 * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -14,7 +15,7 @@ define(function( win ){
 		
 		var lastTime = 0;
 		var vendors = ['ms', 'moz', 'webkit', 'o'];
-		for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+		for(var x = 0; x < vendors.length && !API.requestAnimationFrame; ++x) {
 			API.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
 			API.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
 									   || window[vendors[x]+'CancelRequestAnimationFrame'];
